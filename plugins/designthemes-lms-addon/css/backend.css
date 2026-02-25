@@ -1,0 +1,422 @@
+@charset "utf-8";
+
+
+button, input[type="submit"], input[type="button"] { cursor: pointer; }
+
+.dtlms-button { text-decoration: none; }
+
+.dtlms-custom-box { padding: 10px; margin: 3px 0px 3px 0px; display: inline-block; width: 100%; position: relative; border-radius: 5px; behavior: url(PIE.htc); box-sizing: border-box; }
+
+.dtlms-checkbox-switch { clear:none; float:left; }
+.dtlms-checkbox-switch { cursor:pointer; cursor:hand; clear:both; margin:2px 0px 0px; }
+.dtlms-checkbox-switch.checkbox-switch-on, .dtlms-checkbox-switch.checkbox-switch-on { width:83px; height:30px; background:url(../images/backend/checkbox-switch-on.png); float: none;display: inline-block; }
+.dtlms-checkbox-switch.checkbox-switch-off , .dtlms-checkbox-switch.checkbox-switch-off { width:83px; height:30px; background: url(../images/backend/checkbox-switch-off.png); float: none; display: inline-block; }
+
+.dtlms-save-skin-settings { float: left; }
+
+input[type="checkbox"].hidden { display: none; }
+.dtlms-clear { clear: both; display: block; }
+
+/*--------------------------------------------------------------
+	Course Options
+--------------------------------------------------------------*/
+
+#dtlms-curriculum-items-container { display: block; margin-bottom: 30px; /*padding: 20px;*/ }
+#dtlms-curriculum-items-container #dtlms-curriculum-section-item { display: table; margin: 0 0 15px; position: relative; width: 100%; padding: 0 20px; -moz-box-sizing: border-box; -webkit-box-sizing: border-box; box-sizing: border-box; cursor:move; }
+/*#dtlms-curriculum-section-item label, #dtlms-curriculum-section-item input#course-curriculum { display: table-cell; vertical-align: middle; }*/
+#dtlms-curriculum-section-item label { width: 20%; float: left; margin-top: 5px; cursor: move; }
+#dtlms-curriculum-section-item #course-curriculum, #dtlms-curriculum-section-item #lesson-curriculum { width: 80%; margin: 0; }
+#dtlms-curriculum-section-item .dtlms-remove-curriculum-item, #dtlms-curriculum-section-item .dtlms-remove-curriculum-item ~ .fa-arrows { position: absolute; top: 50%; transform: translateY(-50%); -moz-transform: translateY(-50%); -webkit-transform: translateY(-50%); -ms-transform: translateY(-50%); }
+#dtlms-curriculum-section-item .dtlms-remove-curriculum-item { right: -10px; cursor: pointer; }
+#dtlms-curriculum-section-item .dtlms-remove-curriculum-item span { width: 20px; height: 20px; background: #000; border-radius: 50%; text-align: center; color: #fff; line-height: 20px; }
+#dtlms-curriculum-section-item .dtlms-remove-curriculum-item span:hover { background: #ddd; color: #000; }
+#dtlms-curriculum-section-item .dtlms-remove-curriculum-item ~ .fa-arrows { left: 0; }
+
+.dtlms-custom-box *, ul li a { -webkit-transition: all 0.3s linear; -moz-transition: all 0.3s linear; -o-transition: all 0.3s linear; -ms-transition: all 0.3s linear; transition: all 0.3s linear; }
+
+.dtlms-custom-box p.dtlms-note, .dtlms-settings-options-holder p.dtlms-note, .dtlms-classregistrations-container p.dtlms-note, .dtlms-settings-permalink-container .dtlms-note, .dtlms-settings-chart-container .dtlms-note { width: 100%; float: left; margin: 15px 0 0; background-color: rgba(0,0,0,0.05); padding: 8px; border-radius: 5px; position: relative; display: inline-block; box-sizing: border-box; }
+.dtlms-custom-box p.dtlms-note:before, .dtlms-settings-options-holder p.dtlms-note:before { content: ""; position: absolute; border-bottom: 10px solid rgba(0,0,0,0.05); border-top: 10px solid transparent; border-left: 10px solid transparent; border-right: 10px solid transparent; top: 0; left: 10px; -moz-transform: translateY(-100%); -webkit-transform: translateY(-100%); transform: translateY(-100%); }
+
+.dtlms-settings-permalink-container .dtlms-note, .dtlms-settings-chart-container .dtlms-note { margin: 0 0 15px 0; }
+
+.dtlms-custom-box .custom-button-style.dtlms-revoke-user-submission { float: right; margin: 0; }
+#dtlms-class-default-metabox .dtlms-custom-box .ui-sortable-handle .chosen-container, 
+#dtlms-class-default-metabox .dtlms-custom-box .dtlms-course-box .chosen-container, 
+#dtlms-class-default-metabox .postbox-container .postbox .chosen-container { width: 97% !important; }
+.dtlms-custom-box .chosen-container { width: 100% !important; }
+.dtlms-custom-box #course_curriculum_chosen.chosen-container, .dtlms-custom-box #lesson_curriculum_chosen.chosen-container { width:80% !important;}
+.postbox-container #dtlms-events-calendar-metabox.postbox .chosen-container, .postbox-container #dtlms-bbpress-forum-metabox .chosen-container { width: 100% !important;} 
+.dtlms-custom-box .chosen-container.chosen-container-multi { width: 100% !important;}
+
+.dtlms-custom-box .chosen-container.chosen-container-multi .chosen-choices { position: relative; }
+.dtlms-custom-box .chosen-container.chosen-container-multi .chosen-choices:before { position: absolute; content: ""; display: block; width: 0; height: 0; border-left: 4px solid transparent; border-right: 4px solid transparent; border-top: 6px solid #72777c; right: 10px; top: 50%; transform: translateY(-50%); -moz-transform: translateY(-50%); -webkit-transform: translateY(-50%); -ms-transform: translateY(-50%); }
+
+.dtlms-custom-box .chosen-container.chosen-container-multi.chosen-container-active .chosen-choices:before { border-left: 4px solid transparent; border-right: 4px solid transparent; border-bottom: 6px solid #72777c; border-top: none; }
+
+.dtlms-custom-box button, .dtlms-custom-box input[type="button"] { cursor: pointer; }
+.dtlms-custom-box .dtlms-upload-media-items-container { display: inline-block; width: 100%; position: relative; }
+.dtlms-custom-box .dtlms-upload-media-items-container input[type="button"] { margin-top: 10px; }
+.dtlms-custom-box .dtlms-multiple-choice-image-answers .dtlms-upload-media-items-container input[type="button"] { margin-top: 0; }
+
+.dtlms-custom-box .dtlms-upload-media-items-container input[readonly].uploadfieldurl, 
+.dtlms-custom-box .dtlms-multiple-correct-answers #dt_multicorrect_answers { width: 95%; }
+
+.dtlms-custom-box .dtlms-multiple-choice-image-answers #dt_multichoice_image_answers.uploadfieldurl { width: 83%; }
+.dtlms-custom-box .custom-button-style, .dtlms-add-user-social.custom-button-style { text-decoration: none; font-size: 12px; line-height: 26px; color: #ffffff; background: #000; padding: 5px 15px; display: inline-block; border-radius: 3px; font-weight: 600; margin: 5px 10px 5px 0; -webkit-transition: all 0.3s linear; -moz-transition: all 0.3s linear; -o-transition: all 0.3s linear; -ms-transition: all 0.3s linear; transition: all 0.3s linear; }
+.dtlms-custom-box .custom-button-style:hover, .dtlms-add-user-social.custom-button-style:hover { background: #ddd; color: #000; }
+
+.dtlms-custom-box .dtlms-class-subtitle, .dtlms-custom-box .dtlms-class-maintabtitle, .dtlms-custom-box .dtlms-class-content-title, .dtlms-custom-box .dtlms-class-start-date, .dtlms-custom-box .dtlms-class-capacity { width: 100% !important; }
+.dtlms-custom-box #certificate-percentage, .dtlms-custom-box #reference-url, .dtlms-custom-box #badge-percentage, .dtlms-custom-box #drip-duration, .dtlms-custom-box .course-start-date, .dtlms-custom-box #capacity, .dtlms-custom-box .course-prerequisite,
+.dtlms-custom-box #duration, .dtlms-custom-box #lesson-maximum-mark, .dtlms-custom-box #lesson-pass-percentage, .dtlms-custom-box #quiz-retakes, .dtlms-custom-box #dtlms-question-type, .dtlms-custom-box #dt_text_before_gap, .dtlms-custom-box #dt_gap, 
+.dtlms-custom-box #dt_text_after_gap, .dtlms-custom-box #assignment-subtitle, .dtlms-custom-box #assignment-maximum-mark, .dtlms-custom-box #assignment-pass-percentage, .dtlms-custom-box #assignment-attachment-size, .dtlms-custom-box #review-or-feedback, .dtlms-custom-box #dtlms-marks-obtained, .dtlms-custom-box #dtlms-marks-obtained-percentage, .dtlms-custom-box #period { width: 100% !important; }
+
+.dtlms-custom-box #dt_multichoice_answers{ width: 95% !important; }
+
+.dtlms-custom-box .dtlms-upload-media-items-holder ul.dtlms-upload-media-items { margin: 0; }
+.dtlms-custom-box .dtlms-upload-media-items-holder ul.dtlms-upload-media-items li { position: relative; margin:0; }
+.dtlms-custom-box .dtlms-upload-media-items-holder ul.dtlms-upload-media-items li input[readonly] { width: 50.6%; margin-right: 1%; }
+.dtlms-custom-box .dtlms-upload-media-items-holder ul.dtlms-upload-media-items li input.media-attachment-titles { width: 31%; margin-right: 1%; }
+.dtlms-custom-box .dtlms-upload-media-items-holder ul.dtlms-upload-media-items li .dtlms-remove-media-item { margin-left:10px; }
+.dtlms-custom-box .dtlms-upload-media-items-holder ul.dtlms-upload-media-items li .dtlms-remove-media-item span:hover { background: #ddd; color: #000; }
+
+.dtlms-custom-box textarea#sidebar-content { width: 100%; }
+.dtlms-custom-box .dtlms-image-preview-holder { display: inline-block; position: relative; margin-left: 10px; vertical-align:middle; }
+.dtlms-custom-box .dtlms-image-preview-holder a { position: relative; display: inline-block; width: 100%; }
+.dtlms-custom-box .dtlms-image-preview-holder a .dtlms-image-preview-tooltip { opacity: 0; visibility: hidden; position: absolute; left: 0; right: -5px; margin: auto; top: 50%; -webkit-transform: translateY(-50%) translateX(150%); -moz-transform: translateY(-50%) translateX(150%); transform: translateY(-50%) translateX(150%); -webkit-transition: all 0.3s linear; -moz-transition: all 0.3s linear; -o-transition: all 0.3s linear; -ms-transition: all 0.3s linear; transition: all 0.3s linear; } 
+.dtlms-custom-box .dtlms-image-preview-holder a:hover .dtlms-image-preview-tooltip { opacity: 1; visibility: visible; -webkit-transform: translateY(-50%) translateX(150%); -moz-transform: translateY(-50%) translateX(150%); transform: translateY(-50%) translateX(150%); } 
+.dtlms-custom-box .dtlms-image-preview-holder a .dtlms-image-preview-tooltip img { width: 100px; height: auto; }
+
+/*--------------------------------------------------------------
+	Classes Options
+--------------------------------------------------------------*/
+
+.dtlms-custom-box .dtlms-course-box { margin-bottom: 10px; padding-left: 20px; position: relative; }
+.dtlms-custom-box .dtlms-course-box span.fa-arrows { position: absolute; top: 7px; left: 0; cursor: move; }
+.dtlms-custom-box .dtlms-course-box .dtlms-remove-course { display: inline-block; position: relative; vertical-align: middle; }
+.dtlms-custom-box .dtlms-course-box .dtlms-remove-course span { width: 20px; height: 20px; background: #000; border-radius: 50%; text-align: center; color: #fff; line-height: 20px; margin-left: 5px; cursor: pointer; }
+.dtlms-custom-box .dtlms-course-box .dtlms-remove-course span:hover { background: #ddd; color: #000; }
+
+.dtlms-custom-box #dtlms-class-accessories-container .dtlms-accessory-box { margin-bottom: 25px; padding-right: 28px; cursor: move; position: relative; float: right; -webkit-box-sizing: border-box; -moz-box-sizing: border-box; box-sizing: border-box; padding-left: 20px; } 
+.dtlms-custom-box #dtlms-class-accessories-container .dtlms-accessory-box input { margin-right: 1%; }
+
+.dtlms-custom-box #dtlms-class-accessories-container .dtlms-remove-accessory, .dtlms-custom-box .dtlms-tab-box .dtlms-remove-tab, .dtlms-custom-box .dtlms-upload-media-items-holder ul.dtlms-upload-media-items li .dtlms-remove-media-item { position: absolute; top: 4px; left: auto; cursor: move; right: 0; }
+
+.dtlms-custom-box #dtlms-class-accessories-container .dtlms-remove-accessory span, .dtlms-custom-box #dtlms-class-tabs-container .dtlms-tab-box .dtlms-remove-tab span, .dtlms-custom-box .dtlms-upload-media-items-holder ul.dtlms-upload-media-items li .dtlms-remove-media-item span { width: 20px; height: 20px; background: #000; border-radius: 50%; text-align: center; color: #fff; line-height: 20px; margin-left: 0; cursor: pointer; }
+.dtlms-custom-box #dtlms-class-accessories-container .dtlms-remove-accessory span:hover { background: #ddd; color: #000; }
+.dtlms-custom-box #dtlms-class-accessories-container span.fa-arrows { position: absolute; top: 7px; left: 0; right: auto; }
+
+.dtlms-custom-box #dtlms-class-tabs-container .dtlms-tab-box { margin-bottom: 10px; padding-left: 20px; position: relative; }
+.dtlms-custom-box #dtlms-class-tabs-container .dtlms-tab-box span.fa-arrows { position: absolute; top: 7px; left: 0; }
+.dtlms-custom-box #dtlms-class-tabs-container .dtlms-tab-box .dtlms-remove-tab span { margin-left: 10px; }
+.dtlms-custom-box #dtlms-class-tabs-container .dtlms-tab-box .dtlms-remove-tab span:hover { background: #ddd; color: #000; }
+.dtlms-custom-box #dtlms-class-tabs-container .dtlms-tab-box #dtlms-class-tabs-title { float: left; height: 27px; margin-right: 10px; }
+/*.dtlms-custom-box #dtlms-class-tabs-container .dtlms-tab-box #dtlms-class-tabs-content { height: 27px !important; margin-top: 1px; }*/
+
+.dtlms-custom-box .dtlms-class-latitude, .dtlms-custom-box .dtlms-class-longitude { padding: 5px 15px; line-height: 26px; vertical-align: middle; }
+
+#dtlms-class-default-metabox .dtlms-custom-box #dtlms-class-tabs-container .dtlms-tab-box span.fa-arrows { cursor: move; }
+
+#dtlms-class-default-metabox .dtlms-custom-box #dtlms-class-tabs-container .dtlms-tab-box .dtlms-remove-tab,
+#dtlms-class-default-metabox .dtlms-custom-box #dtlms-class-tabs-container .dtlms-tab-box span.fa-arrows { top: 7px; transform: none; -moz-transform: none; -webkit-transform: none; -ms-transform: none; }
+
+#dtlms-class-default-metabox .dtlms-custom-box #dtlms-class-tabs-container .dtlms-tab-box #dtlms-class-tabs-content { margin-top: 10px !important; margin-bottom: 10px !important; }
+
+/*--------------------------------------------------------------
+	Lesson Options
+--------------------------------------------------------------*/
+
+.dtlms-custom-box input#lesson-pass-percentage[type=number] { margin-right: 10px; }
+
+#dtlms-lesson-default-metabox #dtlms-curriculum-items-container { margin-bottom: 0; }
+
+/*--------------------------------------------------------------
+	Quiz Options
+--------------------------------------------------------------*/
+
+.dtlms-custom-box input#quiz-pass-percentage[type=number] { margin-right: 10px; }
+
+.dtlms-add-questions-holder #dtlms-quiz-questions-container #dtlms-question-box,
+.dtlms-add-categories-holder #dtlms-quiz-categories-container #dtlms-category-box { display: table; margin: 0 0 15px; position: relative; width: 100%; padding: 0 20px; -moz-box-sizing: border-box; -webkit-box-sizing: border-box; box-sizing: border-box; cursor: move; } 
+
+.dtlms-add-questions-holder #dtlms-quiz-questions-container #dtlms-question-box span.fa.fa-arrows,
+.dtlms-add-categories-holder #dtlms-quiz-categories-container #dtlms-category-box span.fa.fa-arrows {position: absolute; top: 50%; transform: translateY(-50%); -moz-transform: translateY(-50%); -webkit-transform: translateY(-50%); -ms-transform: translateY(-50%); left: 0; }
+
+.dtlms-add-questions-holder #dtlms-quiz-questions-container #dtlms-question-box input,
+.dtlms-add-categories-holder #dtlms-quiz-categories-container #dtlms-category-box input { margin-right: 10px; }
+.dtlms-add-questions-holder #dtlms-quiz-questions-container #dtlms-question-box .chosen-container,
+.dtlms-add-categories-holder #dtlms-quiz-categories-container #dtlms-category-box .chosen-container { width: 30% !important; margin-top: -2px; margin-right: 10px; }
+
+.dtlms-add-questions-holder #dtlms-total-marks-container, .dtlms-add-categories-holder #dtlms-total-marks-container { float: none; display: inline-block; width: 100%; margin-top: 5px; }
+
+.dtlms-add-questions-holder .dtlms-remove-question span, .dtlms-add-categories-holder .dtlms-remove-category span { width: 20px; height: 20px; background: #000; border-radius: 50%; text-align: center; color: #fff; line-height: 20px;  position: absolute; top: 50%; transform: translateY(-50%); -moz-transform: translateY(-50%); -webkit-transform: translateY(-50%); -ms-transform: translateY(-50%); cursor: pointer; }
+.dtlms-add-questions-holder .dtlms-remove-question span:hover, .dtlms-add-categories-holder .dtlms-remove-category span:hover { background: #ddd; color: #000; }
+
+.dtlms-add-categories-holder #dtlms-quiz-categories-container #dtlms-category-box input { min-width: 230px; }
+
+/*--------------------------------------------------------------
+	Questions Options
+--------------------------------------------------------------*/
+
+#dtlms-multichoice-answers-container #dtlms-answer-holder { position: relative; margin-bottom: 10px; }
+#dtlms-multichoice-answers-container #dtlms-answer-holder input[type=radio], #dtlms-multichoice-image-answers-container .dtlms-upload-media-items-container #dtlms-multichoice-image-correct-answer { margin-top: 8px; float: left; margin-right: 10px; }
+
+#dtlms-multichoice-answers-container #dtlms-answer-holder .dtlms-remove-multichoice-answer span { width: 20px; height: 20px; background: #000; border-radius: 50%; text-align: center; color: #fff; line-height: 20px;  position: absolute; top: 50%; transform: translateY(-50%); -moz-transform: translateY(-50%); -webkit-transform: translateY(-50%); -ms-transform: translateY(-50%); cursor: pointer; margin-left: 10px; }
+#dtlms-multichoice-answers-container #dtlms-answer-holder .dtlms-remove-multichoice-answer span:hover { background: #ddd; color: #000; }
+
+#dtlms-question-default-metabox textarea#dt_answer_hint, #dtlms-question-default-metabox textarea#dt_answer_explanation { width: 100%; height: 70px; }
+
+#dtlms-multichoice-image-answers-container .dtlms-upload-media-items-container { position: relative; margin-bottom: 10px; }
+#dtlms-multichoice-image-answers-container .dtlms-upload-media-items-container .dtlms-remove-multichoice-image-answer span { width: 20px; height: 20px; background: #000; border-radius: 50%; text-align: center; color: #fff;  line-height: 20px; position: absolute; cursor: pointer; margin-top: 5px; margin-left: 10px; }
+#dtlms-multichoice-image-answers-container .dtlms-upload-media-items-container .dtlms-remove-multichoice-image-answer span:hover { background: #ddd; color: #000; }
+
+#dtlms-multicorrect-answers-container #dtlms-answer-holder { margin-bottom: 10px; position: relative; }
+#dtlms-multicorrect-answers-container #dtlms-answer-holder #dtlms-multicorrect-correct-answer { margin-top: 7px; float: left; margin-right: 10px; }
+#dtlms-multicorrect-answers-container #dtlms-answer-holder .dtlms-remove-multicorrect-answer span { width: 20px; height: 20px; background: #000; border-radius: 50%; text-align: center; color: #fff; line-height: 20px;  position: absolute; top: 50%; transform: translateY(-50%); -moz-transform: translateY(-50%); -webkit-transform: translateY(-50%); -ms-transform: translateY(-50%); cursor: pointer; margin-left: 10px; }
+#dtlms-multicorrect-answers-container #dtlms-answer-holder .dtlms-remove-multicorrect-answer span:hover { background: #ddd; color: #000; }
+
+.dtlms-boolean-answers > label { margin-right: 15px; }
+
+.dtlms-gap-fill-answers > .dtlms-column { margin-bottom: 15px; }
+.dtlms-gap-fill-answers > .dtlms-column > label { margin-top: 7px; float: left; }
+
+.dtlms-single-line-answers input, .dtlms-multi-line-answers textarea { width: 100%; float: left; }
+
+/*--------------------------------------------------------------
+	Assignment Options
+--------------------------------------------------------------*/
+
+.dtlms-custom-box input#assignment-pass-percentage[type=number] { margin-right: 10px; }
+
+/*--------------------------------------------------------------
+	Grading Options
+--------------------------------------------------------------*/
+
+.dtlms-custom-box .dtlms-attachments-link { width: 100%; float: left; margin-bottom: 30px; }
+.dtlms-custom-box .dtlms-attachments-link:last-child { margin-bottom: 0; }
+.dtlms-custom-box .dtlms-attachments-link p { width: 100%; float: left; margin: 2px 0; }
+.dtlms-custom-box .dtlms-attachments-link a { text-decoration: none; font-size: 12px; line-height: 26px; color: #ffffff; background: #000; padding: 5px 15px; float: left; border-radius: 3px; font-weight: 600; margin: 5px 10px 5px 0; clear: right; }
+.dtlms-custom-box .dtlms-attachments-link a:hover { background: #ddd; color: #000; }
+
+#dtlms-grading-default-metabox .dtlms-custom-box .dtlms-attachments-link { float: none; display: inline-block; margin: 0 0 20px 0; position:relative; }
+#dtlms-grading-default-metabox .dtlms-custom-box .dtlms-attachments-link img { position: absolute; width: 20px; left: 0; top: 0; margin: auto; }
+#dtlms-grading-default-metabox .dtlms-custom-box .dtlms-attachments-link p { display: inline-block; float: none; width: auto; margin: 0 10px 0 30px; position: relative; line-height: 30px; }
+#dtlms-grading-default-metabox .dtlms-custom-box .dtlms-attachments-link a { display: inline-block; float: none; margin: 0; }
+
+#dtlms-grading-default-metabox table.dtlms-custom-table td:empty { border-bottom: none; }
+
+.dtlms-grade-option-field .dtlms-quiz-answer-switch-off, .dtlms-grade-option-field .dtlms-quiz-answer-switch-on { width: 21px; height: 20px; display: inline-block; text-indent: -9999px; }
+.dtlms-grade-option-field .dtlms-quiz-answer-switch-off { background: url("../images/backend/wrong-answer.png") no-repeat;}
+.dtlms-grade-option-field .dtlms-quiz-answer-switch-on { background: url("../images/backend/right-answer.png") no-repeat;}
+
+#dtlms-grading-default-metabox .dtlms-custom-box table .dtlms-answers td ul li { display: inline-block; position: relative; margin: 0 5px 0; }
+
+/*--------------------------------------------------------------
+	Package Options
+--------------------------------------------------------------*/
+
+#dtlms-package-default-metabox .dtlms-custom-box .chosen-single { margin-top: -4px; }
+#dtlms-package-default-metabox .dtlms-custom-box #period { margin-top:-3px; }
+#dtlms-package-default-metabox .dtlms-custom-box li.search-field input[type="text"] { width: auto !important; }
+
+/*--------------------------------------------------------------
+	Commission Payment Options
+--------------------------------------------------------------*/
+
+#dtlms-payment-default-metabox .dtlms-custom-box td p.dtlms-total_subscriptions span { width: 30px; height: 30px; background: #000; border-radius: 50%; text-align: center; color: #fff; line-height: 30px; float: none; display: inline-block; }
+
+#dtlms-payment-default-metabox .dtlms-custom-box td p.dtlms-total_subscriptions { float: none; display: inline-block; margin: 0; }
+
+#dtlms-payment-default-metabox .dtlms-subscriber-tooltip { position: relative; margin: 0 15px; float: none; display: inline-block; width: 20px; }
+#dtlms-payment-default-metabox .dtlms-subscriber-tooltip i.fa { font-size: 16px; color: #000; cursor: pointer; }
+#dtlms-payment-default-metabox .dtlms-subscriber-tooltip .dtlms-subscription-detail-holder { position: absolute; left: 20px; top: 50%; background: none; width: 400px; border: 10px solid transparent; opacity: 0; visibility: hidden; transform: translateY(-50%); -moz-transform: translateY(-50%); -webkit-transform: translateY(-50%); -ms-transform: translateY(-50%); max-height: 233px; overflow-x: hidden; overflow-y: scroll; }
+
+#dtlms-payment-default-metabox .dtlms-subscriber-tooltip .dtlms-subscription-detail-holder:after { position: absolute; content: ""; display: block; left: -10px; width: 0; height: 0; border-top: 10px solid transparent;	border-right: 10px solid #dfdfdf; border-bottom: 10px solid transparent; top: 50%; transform: translateY(-50%); -moz-transform: translateY(-50%); -webkit-transform: translateY(-50%); -ms-transform: translateY(-50%); }
+
+#dtlms-payment-default-metabox .dtlms-subscriber-tooltip:hover .dtlms-subscription-detail-holder { opacity: 1; visibility: visible; }
+/*#dtlms-payment-default-metabox .dtlms-subscriber-tooltip .dtlms-subscription-detail-holder:before { position: absolute; content: ""; display: block; height: 100%; background: #dfdfdf; width: 1px; left: 30%; }*/
+#dtlms-payment-default-metabox .dtlms-subscriber-tooltip .dtlms-subscription-detail-holder .dtlms-subscriber-details { float: left; border: 1px solid #dfdfdf; width: 100%; background: #fff; border-bottom: none; }
+#dtlms-payment-default-metabox .dtlms-subscriber-tooltip .dtlms-subscription-detail-holder .dtlms-subscriber-details:last-child { border-bottom: 1px solid #dfdfdf; }
+#dtlms-payment-default-metabox .dtlms-subscriber-tooltip .dtlms-subscription-detail-holder .dtlms-subscriber-details > * { -moz-box-sizing: border-box; -webkit-box-sizing: border-box; box-sizing: border-box; }
+#dtlms-payment-default-metabox .dtlms-subscriber-tooltip .dtlms-subscription-detail-holder .dtlms-subscriber-details > label { width: 40%; float: left; padding: 20px; text-align: left; cursor: default; border-right: 1px solid #dfdfdf;  }
+#dtlms-payment-default-metabox .dtlms-subscriber-tooltip .dtlms-subscription-detail-holder .dtlms-subscriber-details > ul { width: 60%; float: right; padding: 20px; margin: 0; text-align: left; }
+#dtlms-payment-default-metabox .dtlms-subscriber-tooltip .dtlms-subscription-detail-holder .dtlms-subscriber-details > ul li { float: none; display: inline-block; position: relative; margin: 0 5px 0 0; padding-right: 5px; }
+#dtlms-payment-default-metabox .dtlms-subscriber-tooltip .dtlms-subscription-detail-holder .dtlms-subscriber-details > ul li:before { position: absolute; content: ","; display: block; right: 0; }
+#dtlms-payment-default-metabox .dtlms-subscriber-tooltip .dtlms-subscription-detail-holder .dtlms-subscriber-details > ul li:last-child { margin: 0; padding: 0; }
+#dtlms-payment-default-metabox .dtlms-subscriber-tooltip .dtlms-subscription-detail-holder .dtlms-subscriber-details > ul li:last-child:before { display: none; }
+
+/*--------------------------------------------------------------
+	Class Registrations Options
+--------------------------------------------------------------*/
+
+.dtlms-statistics-container, .dtlms-statistics-container *, .dtlms-statistics-container *:before, .dtlms-statistics-container *:after,
+.dtlms-classregistrations-container, .dtlms-classregistrations-container *, .dtlms-classregistrations-container *:before, .dtlms-classregistrations-container *:after { box-sizing: border-box; }
+
+.dtlms-classregistrations-container { padding: 10px 20px 0 10px; display: inline-block; width: 100%; }
+.dtlms-classregistrations-container p.dtlms-note { margin-bottom: 10px; }
+
+.dtlms-classregistrations-classes-container .dtlms-class-details-container ul li label { font-weight: 700; }
+
+.dtlms-classregistrations-classes-container table.dtlms-custom-table td:empty { border-bottom: none; }
+
+/*--------------------------------------------------------------
+	Settings Options
+--------------------------------------------------------------*/
+
+.dtlms-custom-nav { margin: 15px 0 0; }
+
+.formOptionSettings { padding: 20px; }
+.formOptionSettings .dtlms-settings-options-holder, .formPocSettings .dtlms-settings-options-holder { margin-bottom: 30px; width: 100%; float: left; }
+.formOptionSettings .dtlms-settings-options-holder input, .formOptionSettings .dtlms-settings-options-holder select { width: 400px; }
+.formOptionSettings .wp-picker-container input, .formOptionSettings .wp-picker-container select { width: auto; }
+ 
+ 
+ .dtlms-settings-general-container .formOptionSettings { position: relative; }
+ 
+.dtlms-settings-assigning-container,
+.dtlms-settings-set-commission-container,
+.dtlms-settings-pay-commission-container,
+.dtlms-settings-poc-container,
+.dtlms-settings-import-container { padding: 20px; width: 100%; float: left; box-sizing: border-box; -moz-box-sizing: border-box; -webkit-box-sizing: border-box; -ms-box-sizing: border-box; position: relative; }
+
+.dtlms-settings-pay-commission-container .dtlms-button.dtlms-load-paycom-datas { margin: 0; }
+
+.dtlms-settings-pay-commission-container .dtlms-paycommission-otheramount-button {margin-top: 50px; padding: 21px 20px 22px; width: 49%; float: left; box-sizing: border-box; -moz-box-sizing: border-box; -webkit-box-sizing: border-box; -ms-box-sizing: border-box; position: relative; background: #fff; } 
+.dtlms-settings-pay-commission-container .dtlms-paycommission-totalamount-button {margin-top: 50px; padding: 20px; width: 49%; float: right; box-sizing: border-box; -moz-box-sizing: border-box; -webkit-box-sizing: border-box; -ms-box-sizing: border-box; position: relative; background: #fff; }
+
+ .dtlms-settings-pay-commission-container .dtlms-paycommission-totalamount-button .dtlms-button { margin-top: 0; padding: 7px 12px; }
+
+.dtlms-settings-import-container .dtlms-button.dtlms-import-file-button.small {padding: 6px 20px; font-size: 12px; line-height: 16px; margin: 0 0 0 5px; }
+
+.dtlms-settings-assign-students-container #dtlms-ajax-load-image,
+.dtlms-settings-assign-courses-container #dtlms-ajax-load-image,
+.dtlms-settings-assign-students-container #dtlms-ajax-load-image,
+.dtlms-settings-assign-courses-container #dtlms-ajax-load-image,
+.dtlms-settings-set-commission-container #dtlms-ajax-load-image { display: block; position: absolute; left: 0; right: 0; height: 100%; width: 100%; text-align: center; z-index: 9; }
+.dtlms-settings-assign-students-container #dtlms-ajax-load-image img,
+.dtlms-settings-assign-courses-container #dtlms-ajax-load-image img,
+.dtlms-settings-assign-students-container #dtlms-ajax-load-image img,
+.dtlms-settings-assign-courses-container #dtlms-ajax-load-image img,
+.dtlms-settings-set-commission-container #dtlms-ajax-load-image img { position: absolute; left: 0; right: 0; margin: 0 auto; top: 50%; transform: translateY(-50%); -moz-transform: translateY(-50%); -webkit-transform: translateY(-50%); -ms-transform: translateY(-50%); }
+
+.dtlms-settings-assign-students-container .dtlms-assign-studentstocourse-container,
+.dtlms-settings-assign-courses-container .dtlms-assign-coursestostudent-container,
+.dtlms-settings-assign-students-container .dtlms-assign-studentstoclass-container,
+.dtlms-settings-assign-courses-container .dtlms-assign-classestostudent-container { width: 100%; float: left; margin-top: 20px; position: relative; text-align: center; }
+.dtlms-settings-assign-students-container .dtlms-assign-studentstocourse-container .dtlms-checkbox-switch,
+.dtlms-settings-assign-courses-container .dtlms-assign-coursestostudent-container .dtlms-checkbox-switch,
+.dtlms-settings-assign-students-container .dtlms-assign-studentstoclass-container .dtlms-checkbox-switch,
+.dtlms-settings-assign-courses-container .dtlms-assign-classestostudent-container .dtlms-checkbox-switch { float: none; display: inline-block; }
+
+.dtlms-settings-assign-students-container .dtlms-assign-studentstocourse-container .dtlms-assign-students-response-holder, 
+.dtlms-classregistrations-classes-container .dtlms-class-registration-response-holder,  .dtlms-settings-general-container .formOptionSettings .dtlms-option-settings-response-holder, 
+.dtlms-option-settings-response-holder, .dtlms-commission-settings-response-holder, .dtlms-paycommission-response-holder, .formPocSettings .dtlms-poc-settings-response-holder, 
+.dtlms-settings-assign-courses-container .dtlms-assign-coursestostudent-container .dtlms-assign-courses-response-holder, .dtlms-settings-assign-students-container .dtlms-assign-studentstoclass-container .dtlms-assign-classes-students-response-holder,
+.dtlms-settings-assign-courses-container .dtlms-assign-classestostudent-container .dtlms-assign-classes-classes-response-holder { position: relative; background: #000; color: #fff; padding: 10px 20px; box-sizing: border-box; }
+
+.dtlms-settings-general-container .formOptionSettings .dtlms-option-settings-response-holder, .dtlms-option-settings-response-holder, .dtlms-commission-settings-response-holder, .dtlms-paycommission-response-holder, .formPocSettings .dtlms-poc-settings-response-holder { clear: both; text-align: center; }
+
+.dtlms-settings-general-container .formOptionSettings .dtlms-option-settings-response-holder .dtlms-save-options-settings, .dtlms-button.dtlms-save-options-settings { margin-left:0; }
+.dtlms-settings-assigning-container .dtlms-button { margin: 30px 0 20px; }
+
+.dtlms-settings-assign-students-container .dtlms-assign-studentstocourse-container .dtlms-assign-students-response-holder:empty, .dtlms-settings-assign-courses-container .dtlms-assign-coursestostudent-container .dtlms-assign-courses-response-holder:empty,
+.dtlms-settings-assign-students-container .dtlms-assign-studentstoclass-container .dtlms-assign-classes-students-response-holder:empty, .dtlms-settings-assign-courses-container .dtlms-assign-classestostudent-container .dtlms-assign-classes-classes-response-holder:empty, .dtlms-classregistrations-classes-container .dtlms-class-registration-response-holder:empty, .formPocSettings .dtlms-poc-settings-response-holder:empty, .dtlms-option-settings-response-holder:empty, .dtlms-option-settings-response-holder:empty, .dtlms-commission-settings-response-holder:empty, .dtlms-paycommission-response-holder:empty { display: none; }
+
+.dtlms-settings-set-commission-container .dtlms-setcommission-container { width: 100%; float: left; }
+.dtlms-settings-set-commission-container .dtlms-setcommission-container .dtlms-commission-settings-response-holder { float: left; width: 100%; margin-bottom: 15px; }
+
+.dtlms-settings-set-commission-container .dtlms-setcommission-container table.dtlms-custom-table th { width: 30%; }
+.dtlms-settings-set-commission-container .dtlms-setcommission-container table.dtlms-custom-table th:first-child { width: 10% }
+.dtlms-settings-set-commission-container .dtlms-setcommission-container table.dtlms-custom-table td del { margin-right: 10px; }
+
+.dtlms-settings-pay-commission-container .dtlms-paycommission-container td .instructor-paypal-email { min-width: 250px; text-align: center; }
+
+
+.dtlms-setcommission-container .dtlms-button.dtlms-save-commission-settings,
+.dtlms-settings-pay-commission-container .dtlms-button.dtlms-save-commission-settings {float: none; display: inline-block; margin: 50px auto 30px; right: 50%; position: absolute; width: auto; transform: translateX(50%); -moz-transform: translateX(50%); -webkit-transform: translateX(50%); -ms-transform: translateX(50%); }
+
+.formPocSettings .dtlms-settings-options-holder { border: 1px solid #ddd; padding: 20px; box-sizing: border-box; -moz-box-sizing: border-box; -webkit-box-sizing: border-box; -ms-box-sizing: border-box; }
+
+.dtlms-settings-data-holder { width: 99%; float: left; box-sizing: border-box; -moz-box-sizing: border-box; -webkit-box-sizing: border-box; -ms-box-sizing: border-box; overflow-x: scroll; }
+.dtlms-settings-data-holder table.dtlms-custom-table th { text-transform: capitalize; font-weight: normal; letter-spacing: 0.4px; line-height: 20px; font-size: 12px; padding: 10px; }
+
+.dtlms-settings-import-container > p:first-child { margin-top: 0; }
+.dtlms-settings-import-container > p label { margin-right: 10px; }
+
+.dtlms-settings-pay-commission-container .dtlms-subscriber-tooltip { position: relative; margin: 0 15px; float: none; display: inline-block; width: 20px; }
+.dtlms-settings-pay-commission-container .dtlms-subscriber-tooltip i.fa { font-size: 16px; color: #000; cursor: pointer; }
+.dtlms-settings-pay-commission-container .dtlms-subscriber-tooltip .dtlms-subscription-detail-holder { position: absolute; left: 20px; top: 50%; background: none; width: 500px; border: 10px solid transparent; opacity: 0; visibility: hidden; transform: translateY(-50%); -moz-transform: translateY(-50%); -webkit-transform: translateY(-50%); -ms-transform: translateY(-50%); max-height: 233px; overflow-x: hidden; overflow-y: scroll; }
+
+.dtlms-settings-pay-commission-container .dtlms-subscriber-tooltip .dtlms-subscription-detail-holder:after { position: absolute; content: ""; display: block; left: -10px; width: 0; height: 0; border-top: 10px solid transparent;	border-right: 10px solid #dfdfdf; border-bottom: 10px solid transparent; top: 50%; transform: translateY(-50%); -moz-transform: translateY(-50%); -webkit-transform: translateY(-50%); -ms-transform: translateY(-50%); }
+
+.dtlms-settings-pay-commission-container .dtlms-subscriber-tooltip:hover .dtlms-subscription-detail-holder { opacity: 1; visibility: visible; }
+.dtlms-settings-pay-commission-container .dtlms-subscriber-tooltip .dtlms-subscription-detail-holder .dtlms-subscriber-details { float: left; border: 1px solid #dfdfdf; width: 100%; background: #fff; border-bottom: none; }
+.dtlms-settings-pay-commission-container .dtlms-subscriber-tooltip .dtlms-subscription-detail-holder .dtlms-subscriber-details:last-child { border-bottom: 1px solid #dfdfdf; }
+.dtlms-settings-pay-commission-container .dtlms-subscriber-tooltip .dtlms-subscription-detail-holder .dtlms-subscriber-details > * { -moz-box-sizing: border-box; -webkit-box-sizing: border-box; box-sizing: border-box; }
+.dtlms-settings-pay-commission-container .dtlms-subscriber-tooltip .dtlms-subscription-detail-holder .dtlms-subscriber-details > label { width: 30%; float: left; padding: 20px; text-align: left; cursor: default; border-right: 1px solid #dfdfdf;  }
+.dtlms-settings-pay-commission-container .dtlms-subscriber-tooltip .dtlms-subscription-detail-holder .dtlms-subscriber-details > ul { width: 70%; float: right; padding: 20px; margin: 0; text-align: left; }
+.dtlms-settings-pay-commission-container .dtlms-subscriber-tooltip .dtlms-subscription-detail-holder .dtlms-subscriber-details > ul li { float: none; display: inline-block; position: relative; margin: 0 5px 0 0; padding-right: 5px; }
+.dtlms-settings-pay-commission-container .dtlms-subscriber-tooltip .dtlms-subscription-detail-holder .dtlms-subscriber-details > ul li:before { position: absolute; content: ","; display: block; right: 0; }
+.dtlms-settings-pay-commission-container .dtlms-subscriber-tooltip .dtlms-subscription-detail-holder .dtlms-subscriber-details > ul li:last-child { margin: 0; padding: 0; }
+.dtlms-settings-pay-commission-container .dtlms-subscriber-tooltip .dtlms-subscription-detail-holder .dtlms-subscriber-details > ul li:last-child:before { display: none; }
+
+.dtlms-paycommission-container input { margin: 0 8px; }
+.dtlms-paycommission-container .dtlms-paycommission-response-holder { margin: 20px 0 0; }
+
+.form-table td .wp-picker-container span { clear: both; }
+
+
+.wp-admin .dtlms-chart-holder table.dtlms-custom-table th, .wp-admin .dtlms-custom-box table th { font-weight: 700; }
+
+.wp-admin .dtlms-statistics-container .dtlms-custom-table-wrapper { overflow: visible; }
+.wp-admin .dtlms-statistics-container .dtlms-custom-table-wrapper .dtlms-custom-dashboard-table { position: relative; width: 100%; }
+.wp-admin .dtlms-statistics-container .dtlms-custom-table-wrapper .dtlms-custom-dashboard-table td { z-index: 9 }
+
+.wp-admin .dtlms-statistics-container .dtlms-custom-table-wrapper .dtlms-custom-dashboard-table tr td:last-child .dtlms-subscriber-tooltip .dtlms-subscription-detail-holder { left: auto; right: 0; }
+
+.wp-admin .dtlms-statistics-container.statistics-intro .dtlms-chart-holder table.dtlms-custom-table tbody tr { margin: 0; width: 100%; display: table-row; }
+.wp-admin .dtlms-statistics-container.statistics-intro .dtlms-chart-holder table.dtlms-custom-table tbody tr { margin: 0; }
+.wp-admin .dtlms-statistics-container.statistics-intro .dtlms-chart-holder table.dtlms-custom-table td { display: table-cell; float: none; background: none; color: #444; font-weight: normal; border-width: 1px 0 0 1px; border-style: solid; 
+border-color: #dfdfdf; }
+.wp-admin .dtlms-statistics-container.statistics-intro .dtlms-chart-holder table.dtlms-custom-table td:last-child { border-right: 1px solid #dfdfdf; }
+.wp-admin .dtlms-statistics-container.statistics-intro .dtlms-chart-holder table.dtlms-custom-table td[colspan]:empty { display: none; }
+.wp-admin #wpwrap #wpcontent #wpbody .dtlms-chart-container #dtlms-ajax-load-image, 
+.wp-admin #wpwrap #wpcontent #wpbody .dtlms-statistics-container #dtlms-ajax-load-image { position: absolute; z-index: 9999; }
+
+table.fixed.striped.comments.wp-list-table .dtlms-comment-rating span { font-size: 0; margin-right: 3px; }
+table.fixed.striped.comments.wp-list-table .dtlms-comment-rating span:before { font-size: 14px; }
+
+
+#dtlms-user-details-container #dtlms-user-section-item { margin: 0 0 15px; position: relative; width: 100%; padding: 0 20px; -moz-box-sizing: border-box; -webkit-box-sizing: border-box; box-sizing: border-box; cursor:move; position: relative; }
+
+#dtlms-user-details-container #dtlms-user-section-item .dtlms-remove-user-tab,
+#dtlms-user-details-container #dtlms-user-section-item .fa-arrows { position: absolute; left:  0; top: 50%; transform: translateY(-50%); -moz-transform: translateY(-50%); -webkit-transform: translateY(-50%); -ms-transform: translateY(-50%); }
+
+#dtlms-user-details-container #dtlms-user-section-item .dtlms-remove-user-tab span {width: 20px; height: 20px; background: #000; border-radius: 50%; text-align: center; color: #fff; line-height: 20px; }
+#dtlms-user-details-container #dtlms-user-section-item .dtlms-remove-user-tab { right: -10px; left: auto; cursor: pointer; }
+
+.wp-admin #wpwrap #wpcontent #wpbody .dtlms-custom-table td del { margin: 0 5px 0 0; }
+
+.wp-admin #wpwrap #wpcontent #wpbody .dtlms-note { display: inline-block; /*border: 1px solid rgba(0, 0, 0, 0.15);*/ padding: 5px 15px; }
+
+
+/*--------------------------------------------------------------
+	Upload Media
+--------------------------------------------------------------*/
+
+form#addtag .form-field .dtlms-upload-media-items-container,
+form#edittag .form-field .dtlms-upload-media-items-container {display: inline-block; width: 100%; position: relative; }
+form#addtag .form-field .dtlms-upload-media-items-container input[readonly].uploadfieldurl,
+form#edittag .form-field .dtlms-upload-media-items-container input[readonly].uploadfieldurl {width: 95%; }
+form#addtag .form-field .dtlms-upload-media-items-container input[type="button"],
+form#edittag .form-field .dtlms-upload-media-items-container input[type="button"] {margin-top: 10px; }
+form#addtag .form-field .dtlms-upload-media-items-container .dtlms-image-preview-holder,
+form#edittag .form-field .dtlms-upload-media-items-container .dtlms-image-preview-holder {display: inline-block; position: relative; margin-left: 10px; vertical-align: middle; }
+form#addtag .form-field .dtlms-upload-media-items-container .dtlms-image-preview-holder a,
+form#edittag .form-field .dtlms-upload-media-items-container .dtlms-image-preview-holder a {position: relative; display: inline-block; width: 100%; }
+form#addtag .form-field .dtlms-upload-media-items-container .dtlms-image-preview-holder a .dtlms-image-preview-tooltip,
+form#edittag .form-field .dtlms-upload-media-items-container .dtlms-image-preview-holder a .dtlms-image-preview-tooltip {opacity: 0; visibility: hidden; position: absolute; left: 0; right: -5px; margin: auto; top: 50%; -webkit-transform: translateY(-50%) translateX(150%); -moz-transform: translateY(-50%) translateX(150%); transform: translateY(-50%) translateX(150%); -webkit-transition: all 0.3s linear; -moz-transition: all 0.3s linear; -o-transition: all 0.3s linear; -ms-transition: all 0.3s linear; transition: all 0.3s linear; }
+
+form#addtag .form-field .dtlms-upload-media-items-container .dtlms-image-preview-holder a .dtlms-image-preview-tooltip img,
+form#edittag .form-field .dtlms-upload-media-items-container .dtlms-image-preview-holder a .dtlms-image-preview-tooltip img {width: 100px; height: auto; }
+form#addtag .form-field .dtlms-upload-media-items-container .dtlms-image-preview-holder a:hover .dtlms-image-preview-tooltip,
+form#edittag .form-field .dtlms-upload-media-items-container .dtlms-image-preview-holder a:hover .dtlms-image-preview-tooltip {opacity: 1; visibility: visible; -webkit-transform: translateY(-50%) translateX(150%); -moz-transform: translateY(-50%) translateX(150%); transform: translateY(-50%) translateX(150%); }

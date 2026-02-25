@@ -1,0 +1,35 @@
+# This action syncs this repository with the Bitbucket mirror repository.
+---
+name: Bitbucket Mirror Sync
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+  create:
+    tags:
+      - "v*"
+
+jobs:
+  sync-mirror:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Sync the GitHub main branch
+        uses: estevao90/sync-git-branch@main
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.BITBUCKET_SSH_PRIVATE_KEY }}
+        with:
+          source-branch: main
+          destination-repo: "git@bitbucket.org:learndash/learndash-certificate-builder.git"
+          destination-branch: master
+
+      - name: Sync the tags
+        uses: estevao90/sync-git-branch@main
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.BITBUCKET_SSH_PRIVATE_KEY }}
+        with:
+          source-branch: "refs/tags/*"
+          destination-repo: "git@bitbucket.org:learndash/learndash-certificate-builder.git"
+          destination-branch: "refs/tags/*"

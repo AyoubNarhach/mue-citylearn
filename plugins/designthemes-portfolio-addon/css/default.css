@@ -1,0 +1,5 @@
+.dtportfolio-remove-footer footer, .dtportfolio-remove-footer .footer-wrapper, .dtportfolio-remove-breadcrumb .page-title-container-breadcrumbs, .dtportfolio-remove-breadcrumb .x-breadcrumb-wrap { display: none; }
+.dtportfolio-transparent-header #header, .dtportfolio-transparent-header .x-navbar { background: rgba(255, 255, 255, 0.5); } 
+.dtportfolio-transparent-header .header-wrapper { z-index: 9; }
+
+.dtportfolio-fixed-content { z-index: 6; }
