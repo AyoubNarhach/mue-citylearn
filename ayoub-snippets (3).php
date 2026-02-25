@@ -5994,7 +5994,7 @@ add_shortcode('ld_topic_report', function($atts){
       });
     });
   })();
-  JS;
+JS;
   wp_add_inline_script('ldtr-js', $inline);
 
   return $html;
