@@ -6000,3 +6000,141 @@ add_shortcode('ld_topic_report', function($atts){
   return $html;
 });
 
+// === LMS Admin : Accès universel aux parcours (sans inscription DB) ===
+/**
+ * Objectif : les utilisateurs lms_admin ont accès à TOUS les parcours
+ *            (existants et futurs) sans inscription réelle en base de données,
+ *            donc ils n'apparaissent PAS parmi les inscrits dans les rapports.
+ *
+ * Corrections :
+ *  1. learndash_is_admin_user         → LearnDash reconnait lms_admin comme admin
+ *                                        (accès à tous les cours + toutes les leçons)
+ *  2. sfwd_lms_has_access             → accès virtuel direct au contenu
+ *  3. learndash_shortcode_course_list_query_args → [ld_course_list] montre tous les cours
+ *  4. redirect_canonical              → correction de la pagination sur pages statiques
+ *                                        (clic sur "2" ne vide plus la liste)
+ *  5. Exclusion des rapports          → lms_admin exclus des comptages d'inscrits
+ *
+ * Pour [ld_topic_report] : utiliser exclude_roles="lms_admin,administrator"
+ */
+if (!defined('LMSAA_BOOTSTRAP')) {
+  define('LMSAA_BOOTSTRAP', '1.0');
+
+  /* ---- Helper ---- */
+  function lmsaa_is_lms_admin(int $user_id = 0): bool {
+    $uid = $user_id ?: get_current_user_id();
+    if (!$uid) return false;
+    $u = get_userdata($uid);
+    return $u && in_array('lms_admin', (array)$u->roles, true);
+  }
+
+  /* ---- 1. LearnDash reconnait lms_admin comme administrateur ---- *
+   * learndash_is_admin_user() est le point central d'accès dans LearnDash :
+   * il bypasse les restrictions d'inscription sur les cours, leçons, topics, quiz.
+   */
+  add_filter('learndash_is_admin_user', function ($is_admin, $user_id) {
+    if ($is_admin) return true;
+    return lmsaa_is_lms_admin((int)$user_id) ? true : $is_admin;
+  }, 10, 2);
+
+  /* ---- 2. Accès virtuel sfwd_lms_has_access (fallback direct) ---- */
+  add_filter('sfwd_lms_has_access', function ($has_access, $post_id, $user_id) {
+    if ($has_access) return true;
+    return lmsaa_is_lms_admin((int)$user_id) ? true : $has_access;
+  }, 5, 3);
+
+  /* ---- 3. [ld_course_list] : tous les cours visibles pour lms_admin ---- *
+   * Sans ce filtre, le shortcode ne montre que les cours auxquels l'utilisateur
+   * est inscrit en base. On retire le filtre post__in et les meta_query d'inscription.
+   */
+  add_filter('learndash_shortcode_course_list_query_args', function ($query_args, $atts) {
+    if (!lmsaa_is_lms_admin()) return $query_args;
+
+    // Supprimer le filtre par liste d'IDs inscrits
+    unset($query_args['post__in']);
+
+    // Supprimer les clauses meta_query liées à l'inscription
+    if (!empty($query_args['meta_query']) && is_array($query_args['meta_query'])) {
+      $clean = [];
+      foreach ($query_args['meta_query'] as $k => $clause) {
+        if ($k === 'relation') { $clean[$k] = $clause; continue; }
+        if (!is_array($clause)) continue;
+        $key = isset($clause['key']) ? $clause['key'] : '';
+        if (
+          strpos($key, 'course_access_list')         !== false ||
+          strpos($key, 'learndash_group_enrolled')   !== false
+        ) {
+          continue; // ignorer cette clause
+        }
+        $clean[] = $clause;
+      }
+      // Nettoyer : si plus que la clé relation, garder ; sinon supprimer
+      $data_clauses = array_filter($clean, fn($v) => is_array($v));
+      if (empty($data_clauses)) {
+        unset($query_args['meta_query']);
+      } else {
+        $query_args['meta_query'] = $clean;
+      }
+    }
+
+    return $query_args;
+  }, 10, 2);
+
+  /* ---- 4. Fix pagination [ld_course_list] sur pages statiques ---- *
+   * Problème : WordPress redirige /ma-page/page/2/ → /ma-page/ sur les pages
+   * statiques, ce qui vide complètement la liste des parcours.
+   * Solution  : bloquer la redirection canonique quand on est paginé.
+   */
+  add_filter('redirect_canonical', function ($redirect_url, $requested_url) {
+    global $wp_query;
+    // Paged via permaliens jolis (/page/2/)
+    if (is_page() && !empty($wp_query->query_vars['paged'])) {
+      return false;
+    }
+    // Paged via paramètre GET (?paged=2)
+    if (is_page() && !empty($_GET['paged']) && (int)$_GET['paged'] > 1) {
+      return false;
+    }
+    return $redirect_url;
+  }, 10, 2);
+
+  // S'assurer que la variable 'paged' est bien transmise à la WP_Query principale
+  add_action('pre_get_posts', function ($query) {
+    if (is_admin() || !$query->is_main_query() || !is_page()) return;
+    if (!empty($_GET['paged']) && !(int)get_query_var('paged')) {
+      set_query_var('paged', max(1, (int)$_GET['paged']));
+    }
+  });
+
+  /* ---- 5. Exclure lms_admin des comptages d'inscrits dans les rapports ---- *
+   * Puisque lms_admin n'est pas inscrit en DB, ils n'apparaissent pas
+   * dans learndash_get_users_for_course() ni dans ld_course_access_list().
+   * Ce filtre est une sécurité supplémentaire au cas où un lms_admin aurait
+   * été inscrit manuellement par erreur.
+   */
+  add_filter('learndash_get_users_for_course', function ($users, $course_id, $args) {
+    if (empty($users) || !is_array($users)) return $users;
+    $lms_ids = get_users(['role' => 'lms_admin', 'fields' => 'ID', 'number' => -1]);
+    if (empty($lms_ids)) return $users;
+    $lms_ids = array_map('intval', (array)$lms_ids);
+    return array_values(array_diff(array_map('intval', $users), $lms_ids));
+  }, 20, 3);
+
+  /* ---- Synchronisation ponctuelle des nouveaux parcours (optionnel) ---- *
+   * Si on veut AUSSI inscrire réellement les lms_admin dans chaque nouveau
+   * parcours publié (pour qu'ils apparaissent dans les statistiques),
+   * décommenter le bloc ci-dessous. Attention : ils apparaîtront dans les rapports.
+   *
+   * add_action('transition_post_status', function($new, $old, $post) {
+   *   if ($post->post_type !== 'sfwd-courses') return;
+   *   if ($new !== 'publish' || $old === 'publish') return;
+   *   $lms_admins = get_users(['role' => 'lms_admin', 'fields' => 'ID', 'number' => -1]);
+   *   foreach ((array)$lms_admins as $uid) {
+   *     if (function_exists('ld_update_course_access')) {
+   *       ld_update_course_access((int)$uid, (int)$post->ID, false);
+   *     }
+   *   }
+   * }, 10, 3);
+   */
+}
+
