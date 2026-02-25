@@ -5907,7 +5907,7 @@ add_shortcode('ld_topic_report', function($atts){
   $ajaxurl = admin_url('admin-ajax.php');
   $nonce   = wp_create_nonce('ldtr_nonce');
 
-  $inline = <<<JS
+  ob_start(); ?>
   (function(){
     function q(s,c){return (c||document).querySelector(s)}
     function qa(s,c){return (c||document).querySelectorAll(s)}
@@ -5931,10 +5931,10 @@ add_shortcode('ld_topic_report', function($atts){
 
         var fd = new FormData();
         fd.append('action','ldtr_get_topics');
-        fd.append('nonce','{$nonce}');
+        fd.append('nonce','<?php echo esc_js($nonce); ?>');
         fd.append('course_id', cid);
 
-        fetch('{$ajaxurl}', {method:'POST', body:fd, credentials:'same-origin', cache:'no-store'})
+        fetch('<?php echo esc_js($ajaxurl); ?>', {method:'POST', body:fd, credentials:'same-origin', cache:'no-store'})
           .then(r=>r.json())
           .then(function(j){
             setStatus('');
@@ -5962,12 +5962,12 @@ add_shortcode('ld_topic_report', function($atts){
 
         var fd = new FormData();
         fd.append('action','ldtr_topic_stats');
-        fd.append('nonce','{$nonce}');
+        fd.append('nonce','<?php echo esc_js($nonce); ?>');
         fd.append('course_id', cid);
         fd.append('topic_id',  tid);
         fd.append('exclude_roles', exclude);
 
-        fetch('{$ajaxurl}', {method:'POST', body:fd, credentials:'same-origin', cache:'no-store'})
+        fetch('<?php echo esc_js($ajaxurl); ?>', {method:'POST', body:fd, credentials:'same-origin', cache:'no-store'})
           .then(r=>r.json())
           .then(function(j){
             setStatus('');
@@ -5994,7 +5994,7 @@ add_shortcode('ld_topic_report', function($atts){
       });
     });
   })();
-  JS;
+  <?php $inline = ob_get_clean();
   wp_add_inline_script('ldtr-js', $inline);
 
   return $html;
