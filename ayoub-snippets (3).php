@@ -6006,22 +6006,18 @@ add_shortcode('ld_topic_report', function($atts){
  *            (existants et futurs) sans inscription réelle en base de données,
  *            donc ils n'apparaissent PAS parmi les inscrits dans les rapports.
  *
- * Stratégie : on NE déclare PAS lms_admin comme "admin LearnDash"
- *             (learndash_is_admin_user), car ça active un code path spécial
- *             dans LD qui casse la pagination. Au lieu de ça, on fait croire
- *             à LD que lms_admin est un utilisateur NORMAL inscrit à tous les cours.
- *
  * Filtres :
- *  1. sfwd_lms_has_access                   → accès au contenu (cours, leçons, topics, quiz)
- *  2. learndash_user_get_enrolled_courses   → retourne TOUS les cours pour lms_admin
+ *  1. sfwd_lms_has_access                 → accès au contenu (cours, leçons, topics, quiz)
+ *  2. learndash_user_get_enrolled_courses → retourne TOUS les cours pour lms_admin
  *     (uniquement quand lms_admin consulte SES propres pages, pas dans les rapports)
- *  3. redirect_canonical + pre_handle_404   → fix pagination pages statiques (sécurité)
- *  4. learndash_get_users_for_course        → exclut lms_admin des rapports d'inscrits
+ *  3. pre_get_posts (priorité 1)          → CAUSE RACINE de la pagination cassée,
+ *                                            voir commentaire détaillé ci-dessous
+ *  4. learndash_get_users_for_course      → exclut lms_admin des rapports d'inscrits
  *
  * Pour [ld_topic_report] : utiliser exclude_roles="lms_admin,administrator"
  */
 if (!defined('LMSAA_BOOTSTRAP')) {
-  define('LMSAA_BOOTSTRAP', '2.0');
+  define('LMSAA_BOOTSTRAP', '3.0');
 
   /* ---- Helper ---- */
   function lmsaa_is_lms_admin(int $user_id = 0): bool {
@@ -6037,23 +6033,16 @@ if (!defined('LMSAA_BOOTSTRAP')) {
     return lmsaa_is_lms_admin((int)$user_id) ? true : $has_access;
   }, 5, 3);
 
-  /* ---- 2. Tous les parcours "inscrits" pour lms_admin ---- *
-   * Ce filtre est le cœur de la solution. Au lieu de traiter lms_admin comme
-   * admin LD (ce qui change le code path et casse la pagination), on retourne
-   * la liste de TOUS les cours publiés. LearnDash utilise ensuite cette liste
-   * normalement dans [ld_profile], [ld_course_list], et la pagination fonctionne
-   * car LD traite lms_admin comme un utilisateur inscrit à N cours.
-   *
-   * IMPORTANT : on ne fait ça que quand lms_admin consulte SES propres pages.
-   * Quand un rapport interroge les inscrits d'un autre utilisateur, le filtre
-   * ne s'active pas → lms_admin reste invisible dans les rapports.
+  /* ---- 2. Tous les parcours visibles pour lms_admin ---- *
+   * On retourne la liste de TOUS les cours publiés quand lms_admin consulte
+   * ses propres pages ([ld_profile], [ld_course_list]).
+   * Le filtre ne s'active PAS quand un rapport interroge les inscrits d'un
+   * autre utilisateur → lms_admin reste invisible dans les rapports.
    */
   add_filter('learndash_user_get_enrolled_courses', function ($enrolled_courses, $user_id, $args) {
-    // Ne s'active QUE pour le lms_admin qui consulte ses propres pages
     if ((int)$user_id !== get_current_user_id()) return $enrolled_courses;
     if (!lmsaa_is_lms_admin((int)$user_id)) return $enrolled_courses;
 
-    // Retourner TOUS les cours publiés
     $all_courses = get_posts([
       'post_type'   => 'sfwd-courses',
       'post_status' => 'publish',
@@ -6066,80 +6055,72 @@ if (!defined('LMSAA_BOOTSTRAP')) {
     return !empty($all_courses) ? $all_courses : $enrolled_courses;
   }, 10, 3);
 
-  /* ---- 3. Fix pagination sur pages statiques (sécurité) ---- *
-   * WordPress peut rediriger ou poser un 404 sur /ma-page/page/2/.
-   * Ces filtres corrigent le comportement pour toutes les pages statiques paginées.
+  /* ---- 3. Fix pagination sur pages statiques (CAUSE RACINE) ---- *
+   *
+   * POURQUOI seul lms_admin est touché :
+   *   lms_admin est le seul rôle avec accès à tous les cours (23+).
+   *   Les autres rôles ont moins de cours que la limite par page →
+   *   ils ne déclenchent jamais la pagination → ils ne voient jamais le bug.
+   *
+   * CAUSE RACINE du bug :
+   *   Quand WordPress reçoit /formations/page/2/, il parse l'URL en :
+   *     pagename=formations  +  paged=2
+   *   Puis il construit la requête SQL :
+   *     SELECT * FROM wp_posts WHERE post_name='formations' LIMIT 1 OFFSET 1
+   *   Or, il n'y a qu'une seule page "formations" → OFFSET 1 = 0 résultat.
+   *   WordPress croit que la page n'existe pas → pose un 404.
+   *   Les shortcodes [ld_profile] et [ld_course_list] reçoivent alors un
+   *   contexte vide : 0 cours, 0 stats → "Pas de Parcours trouvé(e)".
+   *
+   * SOLUTION :
+   *   Intervenir dans pre_get_posts à priorité 1 (AVANT la construction du SQL)
+   *   pour retirer temporairement paged de la requête principale.
+   *   Sans paged, le SQL devient :
+   *     SELECT * FROM wp_posts WHERE post_name='formations' LIMIT 1
+   *   → WordPress trouve la page correctement.
+   *   Ensuite, dans posts_results (priorité max), on remet paged via
+   *   set_query_var() pour que les shortcodes puissent le lire.
    */
+  $GLOBALS['lmsaa_static_paged'] = 0;
 
-  // a) Empêcher la redirection canonique
-  add_filter('redirect_canonical', function ($redirect_url, $requested_url) {
-    global $wp_query;
-    if (is_page() && !empty($wp_query->query_vars['paged'])) {
-      return false;
+  add_action('pre_get_posts', function ($query) {
+    if (is_admin() || !$query->is_main_query()) return;
+
+    $pagename = $query->get('pagename') ?: (int)$query->get('page_id');
+    $paged    = (int)$query->get('paged');
+
+    if (!$pagename || $paged <= 1) return;
+
+    // Mémoriser la page pour les filtres 404 et canonical
+    $GLOBALS['lmsaa_static_paged'] = $paged;
+
+    // Retirer paged de la requête AVANT le SQL → pas d'OFFSET → page trouvée
+    $query->set('paged', 0);
+
+    // Une fois la page trouvée, remettre paged pour que les shortcodes le lisent
+    add_filter('posts_results', function ($posts, $q) use ($paged, $query) {
+      if ($q === $query) {
+        set_query_var('paged', $paged);
+      }
+      return $posts;
+    }, PHP_INT_MAX, 2);
+  }, 1); // Priorité 1 = avant tous les autres hooks
+
+  // Empêcher le 404 résiduel (max_num_pages=1 < paged=2 → WP veut quand même 404)
+  add_filter('pre_handle_404', function ($preempt, $wp_query) {
+    if (!empty($wp_query->posts) && ($GLOBALS['lmsaa_static_paged'] ?? 0) > 1) {
+      return true; // Ne pas traiter comme 404
     }
-    if (is_page() && !empty($_GET['paged']) && (int)$_GET['paged'] > 1) {
+    return $preempt;
+  }, 1, 2);
+
+  // Empêcher la redirection canonique vers la page de base (/formations/)
+  add_filter('redirect_canonical', function ($redirect_url, $requested_url) {
+    if (($GLOBALS['lmsaa_static_paged'] ?? 0) > 1) {
       return false;
     }
     return $redirect_url;
-  }, 10, 2);
-
-  // b) Empêcher le 404 sur pages statiques paginées (WP 5.5+)
-  add_filter('pre_handle_404', function ($preempt, $wp_query) {
-    if ($wp_query->is_page && !empty($wp_query->posts)) {
-      $paged = max(
-        (int)$wp_query->get('paged'),
-        !empty($_GET['paged']) ? (int)$_GET['paged'] : 0
-      );
-      if ($paged > 1) {
-        return true;
-      }
-    }
-    return $preempt;
-  }, 10, 2);
-
-  // c) Fallback : restaurer la page si 404 posé malgré tout
-  add_action('wp', function () {
-    global $wp_query;
-    if (!$wp_query->is_404) return;
-
-    $paged = max(
-      (int)get_query_var('paged'),
-      !empty($_GET['paged']) ? (int)$_GET['paged'] : 0
-    );
-    if ($paged <= 1) return;
-
-    $pagename = get_query_var('pagename');
-    $page_id  = (int)get_query_var('page_id');
-
-    $page = null;
-    if ($pagename) {
-      $page = get_page_by_path($pagename);
-    } elseif ($page_id) {
-      $page = get_post($page_id);
-      if ($page && $page->post_type !== 'page') $page = null;
-    }
-    if (!$page || $page->post_status !== 'publish') return;
-
-    $wp_query->is_404      = false;
-    $wp_query->is_page     = true;
-    $wp_query->is_singular = true;
-    $wp_query->post        = $page;
-    $wp_query->posts       = [$page];
-    $wp_query->found_posts = 1;
-    $wp_query->post_count  = 1;
-    $wp_query->queried_object    = $page;
-    $wp_query->queried_object_id = $page->ID;
-    status_header(200);
-    set_query_var('paged', $paged);
-  }, 1);
-
-  // d) Transmettre paged depuis le GET si absent
-  add_action('pre_get_posts', function ($query) {
-    if (is_admin() || !$query->is_main_query()) return;
-    if (!empty($_GET['paged']) && !(int)get_query_var('paged')) {
-      set_query_var('paged', max(1, (int)$_GET['paged']));
-    }
-  });
+  }, 1, 2);
 
   /* ---- 4. Exclure lms_admin des comptages d'inscrits dans les rapports ---- */
   add_filter('learndash_get_users_for_course', function ($users, $course_id, $args) {
