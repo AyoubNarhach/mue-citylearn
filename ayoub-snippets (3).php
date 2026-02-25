@@ -6144,23 +6144,27 @@ if (!defined('LMSAA_BOOTSTRAP')) {
 
   /* ════════════════════════════════════════════════════════════════════
    * 5. [ld_course_list] shortcode args
+   *
+   * IMPORTANT : NE PAS supprimer post__in.
+   * LearnDash pagine en PHP (array_slice sur learndash_user_get_enrolled_courses).
+   * post__in contient déjà la bonne tranche (ex : IDs 13-23 pour page 2).
+   * Si on le supprime → WP_Query repart du début → page 2 = doublon de page 1.
+   * On supprime seulement author/author__in et meta_query d'inscription.
    * ════════════════════════════════════════════════════════════════════ */
   add_filter('learndash_shortcode_course_list_query_args', function ($args, $attr) {
     if (!lmsaa_is_lms_admin()) return $args;
-    unset($args['post__in'], $args['author'], $args['author__in']);
-    $args['post_status'] = 'publish';
-    $args['meta_query']  = [];
+    unset($args['author'], $args['author__in']);
+    $args['meta_query'] = [];
     return $args;
   }, 999, 2);
 
   /* ════════════════════════════════════════════════════════════════════
-   * 6. [ld_profile] course list args
+   * 6. [ld_profile] course list args — même logique que filtre 5
    * ════════════════════════════════════════════════════════════════════ */
   add_filter('learndash_profile_course_list_query_args', function ($args, $user_id) {
     if (!lmsaa_is_lms_admin((int)$user_id)) return $args;
-    unset($args['post__in'], $args['author'], $args['author__in']);
-    $args['post_status'] = 'publish';
-    $args['meta_query']  = [];
+    unset($args['author'], $args['author__in']);
+    $args['meta_query'] = [];
     return $args;
   }, 999, 2);
 
