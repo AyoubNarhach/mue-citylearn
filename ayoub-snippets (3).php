@@ -6080,27 +6080,86 @@ if (!defined('LMSAA_BOOTSTRAP')) {
     return $query_args;
   }, 10, 2);
 
-  /* ---- 4. Fix pagination [ld_course_list] sur pages statiques ---- *
-   * Problème : WordPress redirige /ma-page/page/2/ → /ma-page/ sur les pages
-   * statiques, ce qui vide complètement la liste des parcours.
-   * Solution  : bloquer la redirection canonique quand on est paginé.
+  /* ---- 4. Fix pagination sur pages statiques (profil + formations) ---- *
+   * Problème : WordPress considère qu'une page statique n'a qu'une seule "page".
+   * Quand on visite /ma-page/page/2/ ou /ma-page/?paged=2 :
+   *   a) WordPress redirige vers /ma-page/          → le filtre redirect_canonical corrige
+   *   b) WordPress pose un statut 404               → le filtre pre_handle_404 corrige
+   *   c) Si 404 posé malgré tout, la page est vide  → le hook wp restaure la page
+   *
+   * Résultat : les shortcodes [ld_profile] et [ld_course_list] reçoivent
+   *            le bon numéro de page et affichent les parcours correctement.
    */
+
+  // a) Empêcher la redirection canonique vers la page de base
   add_filter('redirect_canonical', function ($redirect_url, $requested_url) {
     global $wp_query;
-    // Paged via permaliens jolis (/page/2/)
     if (is_page() && !empty($wp_query->query_vars['paged'])) {
       return false;
     }
-    // Paged via paramètre GET (?paged=2)
     if (is_page() && !empty($_GET['paged']) && (int)$_GET['paged'] > 1) {
       return false;
     }
     return $redirect_url;
   }, 10, 2);
 
-  // S'assurer que la variable 'paged' est bien transmise à la WP_Query principale
+  // b) Empêcher WordPress de traiter la page paginée comme un 404 (WP 5.5+)
+  add_filter('pre_handle_404', function ($preempt, $wp_query) {
+    if ($wp_query->is_page && !empty($wp_query->posts)) {
+      $paged = max(
+        (int)$wp_query->get('paged'),
+        !empty($_GET['paged']) ? (int)$_GET['paged'] : 0
+      );
+      if ($paged > 1) {
+        return true; // Ne PAS traiter comme 404, la page existe
+      }
+    }
+    return $preempt;
+  }, 10, 2);
+
+  // c) Fallback : si WordPress a posé le 404 malgré tout, restaurer la page
+  add_action('wp', function () {
+    global $wp_query;
+    if (!$wp_query->is_404) return;
+
+    $paged = max(
+      (int)get_query_var('paged'),
+      !empty($_GET['paged']) ? (int)$_GET['paged'] : 0
+    );
+    if ($paged <= 1) return;
+
+    // Retrouver la page demandée
+    $pagename = get_query_var('pagename');
+    $page_id  = (int)get_query_var('page_id');
+
+    $page = null;
+    if ($pagename) {
+      $page = get_page_by_path($pagename);
+    } elseif ($page_id) {
+      $page = get_post($page_id);
+      if ($page && $page->post_type !== 'page') $page = null;
+    }
+    if (!$page || $page->post_status !== 'publish') return;
+
+    // Restaurer la requête comme une page normale (pas 404)
+    $wp_query->is_404      = false;
+    $wp_query->is_page     = true;
+    $wp_query->is_singular = true;
+    $wp_query->post        = $page;
+    $wp_query->posts       = [$page];
+    $wp_query->found_posts = 1;
+    $wp_query->post_count  = 1;
+    $wp_query->queried_object    = $page;
+    $wp_query->queried_object_id = $page->ID;
+    status_header(200);
+
+    // Rétablir paged pour que les shortcodes LearnDash puissent le lire
+    set_query_var('paged', $paged);
+  }, 1);
+
+  // d) S'assurer que la variable 'paged' est bien transmise depuis le GET
   add_action('pre_get_posts', function ($query) {
-    if (is_admin() || !$query->is_main_query() || !is_page()) return;
+    if (is_admin() || !$query->is_main_query()) return;
     if (!empty($_GET['paged']) && !(int)get_query_var('paged')) {
       set_query_var('paged', max(1, (int)$_GET['paged']));
     }
