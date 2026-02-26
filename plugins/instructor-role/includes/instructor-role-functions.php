@@ -43,7 +43,12 @@ if ( ! function_exists( 'wdm_is_instructor' ) ) {
 
 		if ( $user_info && (
 			in_array( 'wdm_instructor', $user_info->roles ) ||
-			in_array( 'lms_admin', $user_info->roles )
+			(
+				in_array( 'lms_admin', $user_info->roles ) &&
+				// lms_admin est instructeur uniquement en back-office et via REST API,
+				// pas sur les pages frontend (évite le double affichage des listes de cours).
+				( is_admin() || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) )
+			)
 		) ) {
 			$is_instructor = true;
 		}
