@@ -5783,67 +5783,67 @@ JS;
 });
 
 
-// === Instructor-role : lms_admin accès complet espace instructeur ===
+// === Instructor-role : accès complet espace instructeur pour lms_admin ===
 /**
- * Chargé en mu-plugin AVANT le plugin instructor-role, ce bloc intercepte
- * les trois fonctions/filtres clés pour que lms_admin (et tous les wdm_instructor)
- * aient un accès complet sans aucune restriction de propriété de cours.
- *
- * 1. wdm_is_instructor()                    — lms_admin reconnu comme instructeur
- * 2. ir_get_instructor_complete_course_list() — tous les cours pour tous les instructeurs
- * 3. ir_filter_get_settings                  — désactive le redirect backend pour lms_admin
+ * DIAGNOSTIC : la page ir_instructor_overview requiert la capability 'edit_courses'
+ * (class-instructor-role-overview.php : $this->menu_page_capability = 'edit_courses').
+ * WordPress bloque l'accès avant même que le plugin ne s'exécute si cette cap est absente.
+ * Solution en 4 étapes ci-dessous, dans ce mu-plugin qui charge avant les plugins.
  */
 
 /**
- * Définit wdm_is_instructor() avant le plugin (garde if !function_exists).
- * Retourne true pour wdm_instructor ET lms_admin.
+ * Étape 1 — Capabilities : ajouter à lms_admin toutes les caps du rôle wdm_instructor.
+ * Priorité 2 : s'exécute après la création du rôle lms_admin (priorité 1 ci-dessus).
  */
-if ( ! function_exists( 'wdm_is_instructor' ) ) {
-  function wdm_is_instructor( $user_id = 0 ) {
-    if ( empty( $user_id ) ) {
-      $user_id = get_current_user_id();
-    }
-    if ( ! function_exists( 'get_userdata' ) ) {
-      return false;
-    }
-    $user_info     = get_userdata( $user_id );
-    $is_instructor = $user_info && (
-      in_array( 'wdm_instructor', (array) $user_info->roles, true ) ||
-      in_array( 'lms_admin',      (array) $user_info->roles, true )
-    );
-    return apply_filters( 'wdm_check_instructor', $is_instructor );
+add_action( 'init', function () {
+  $role = get_role( 'lms_admin' );
+  if ( ! $role ) {
+    return;
   }
-}
-
-/**
- * Définit ir_get_instructor_complete_course_list() avant le plugin.
- * Retourne TOUS les cours sfwd-courses pour n'importe quel instructeur
- * (wdm_instructor ou lms_admin), sans restriction de propriété ni de partage.
- */
-if ( ! function_exists( 'ir_get_instructor_complete_course_list' ) ) {
-  function ir_get_instructor_complete_course_list( $user_id = 0, $is_builder = false, $fetch_trashed = false ) {
-    if ( empty( $user_id ) ) {
-      $user_id = get_current_user_id();
+  foreach ( [
+    'wpProQuiz_show', 'wpProQuiz_add_quiz', 'wpProQuiz_edit_quiz',
+    'wpProQuiz_delete_quiz', 'wpProQuiz_show_statistics', 'wpProQuiz_import',
+    'wpProQuiz_export', 'read_course', 'publish_courses', 'edit_courses',
+    'delete_courses', 'edit_course', 'delete_course', 'edit_published_courses',
+    'delete_published_courses', 'edit_assignment', 'edit_assignments',
+    'publish_assignments', 'read_assignment', 'delete_assignment',
+    'edit_published_assignments', 'delete_published_assignments',
+    'edit_others_assignments', 'instructor_reports', 'instructor_page',
+    'manage_categories', 'wpProQuiz_toplist_edit',
+    'delete_essays', 'delete_others_essays', 'delete_private_essays',
+    'delete_published_essays', 'edit_essays', 'edit_others_essays',
+    'edit_private_essays', 'edit_published_essays', 'publish_essays',
+    'read_essays', 'read_private_essays', 'edit_posts', 'publish_posts',
+    'edit_published_posts', 'delete_posts', 'delete_published_posts',
+    'view_h5p_contents', 'edit_h5p_contents', 'unfiltered_html',
+    'delete_product', 'delete_products', 'delete_published_products',
+    'edit_product', 'edit_products', 'edit_published_products',
+    'publish_products', 'read_product', 'assign_product_terms',
+  ] as $cap ) {
+    if ( ! $role->has_cap( $cap ) ) {
+      $role->add_cap( $cap );
     }
-    $args = [
-      'post_type'   => 'sfwd-courses',
-      'fields'      => 'ids',
-      'numberposts' => -1,
-    ];
-    if ( $is_builder ) {
-      $args['post_status'] = [ 'publish', 'draft', 'private', 'future' ];
-    }
-    if ( $fetch_trashed ) {
-      $args['post_status'][] = 'trash';
-    }
-    return get_posts( $args );
   }
-}
+}, 2 );
 
 /**
- * Pour lms_admin : neutralise le paramètre "disable backend dashboard"
- * du plugin instructor-role, ce qui empêche la redirection vers l'accueil
- * quand lms_admin accède à l'espace wp-admin.
+ * Étape 2 — wdm_is_instructor() : lms_admin reconnu comme instructeur.
+ * Nécessaire pour que le contenu des pages de l'espace instructeur se charge.
+ */
+add_filter( 'wdm_check_instructor', function ( $is_instructor ) {
+  if ( ! $is_instructor ) {
+    $user = wp_get_current_user();
+    if ( $user && in_array( 'lms_admin', (array) $user->roles, true ) ) {
+      return true;
+    }
+  }
+  return $is_instructor;
+} );
+
+/**
+ * Étape 3 — Prévention redirect : désactive "disable backend dashboard" pour lms_admin.
+ * Le plugin redirige les instructeurs non-'administrator' vers l'accueil si ce paramètre
+ * est actif. lms_admin a manage_options mais pas administrator → serait redirigé sans ça.
  */
 add_filter( 'ir_filter_get_settings', function ( $value, $key ) {
   if ( 'ir_disable_backend_dashboard' === $key ) {
@@ -5854,4 +5854,40 @@ add_filter( 'ir_filter_get_settings', function ( $value, $key ) {
   }
   return $value;
 }, 10, 2 );
+
+/**
+ * Étape 4 — Liste de cours : lms_admin voit TOUS les parcours dans l'espace instructeur.
+ * Définie ici (mu-plugin) avant le plugin, elle prend la priorité via if(!function_exists).
+ * Pour lms_admin → tous les cours. Pour les autres instructeurs → comportement d'origine.
+ */
+if ( ! function_exists( 'ir_get_instructor_complete_course_list' ) ) {
+  function ir_get_instructor_complete_course_list( $user_id = 0, $is_builder = false, $fetch_trashed = false ) {
+    if ( empty( $user_id ) ) {
+      $user_id = get_current_user_id();
+    }
+    $user_info = get_userdata( $user_id );
+    if ( $user_info && in_array( 'lms_admin', (array) $user_info->roles, true ) ) {
+      $args = [
+        'post_type'   => 'sfwd-courses',
+        'fields'      => 'ids',
+        'numberposts' => -1,
+      ];
+      if ( $is_builder ) {
+        $args['post_status'] = [ 'publish', 'draft', 'private', 'future' ];
+      }
+      if ( $fetch_trashed ) {
+        $args['post_status'][] = 'trash';
+      }
+      return get_posts( $args );
+    }
+    // Comportement original pour les wdm_instructor.
+    if ( function_exists( 'ir_get_instructor_owned_course_list' ) && function_exists( 'ir_get_instructor_shared_course_list' ) ) {
+      return array_merge(
+        ir_get_instructor_owned_course_list( $user_id, $is_builder, $fetch_trashed ),
+        ir_get_instructor_shared_course_list( $user_id )
+      );
+    }
+    return [];
+  }
+}
 
