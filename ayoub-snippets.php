@@ -3905,100 +3905,6 @@ add_action('init', function(){
     }
 });
 
-// === lmsadmin = instructeur ===
-
-/**
- * Auto-ajout du rôle wdm_instructor pour tous les lms_admin
- * Place ce code dans functions.php ou crée un plugin
- */
-
-// 1) À la connexion
-add_action('wp_login', function($user_login, $user) {
-    if (in_array('lms_admin', (array) $user->roles)) {
-        if (!in_array('wdm_instructor', (array) $user->roles)) {
-            $user->add_role('wdm_instructor');
-            update_user_meta($user->ID, 'ir_is_instructor', 'yes');
-            update_user_meta($user->ID, 'wdm_instructor_role', true);
-        }
-    }
-}, 10, 2);
-
-// 2) Quand un utilisateur devient lms_admin
-add_action('set_user_role', function($user_id, $role, $old_roles) {
-    if ($role === 'lms_admin') {
-        $user = get_userdata($user_id);
-        if (!in_array('wdm_instructor', (array) $user->roles)) {
-            $user->add_role('wdm_instructor');
-            update_user_meta($user_id, 'ir_is_instructor', 'yes');
-            update_user_meta($user_id, 'wdm_instructor_role', true);
-        }
-    }
-}, 10, 3);
-
-// 3) Quand un rôle est ajouté à un utilisateur existant
-add_action('add_user_role', function($user_id, $role) {
-    if ($role === 'lms_admin') {
-        $user = get_userdata($user_id);
-        if (!in_array('wdm_instructor', (array) $user->roles)) {
-            $user->add_role('wdm_instructor');
-            update_user_meta($user_id, 'ir_is_instructor', 'yes');
-            update_user_meta($user_id, 'wdm_instructor_role', true);
-        }
-    }
-}, 10, 2);
-
-// 4) À chaque chargement de page (sécurité)
-add_action('init', function() {
-    if (!is_user_logged_in()) return;
-    
-    $user = wp_get_current_user();
-    if (in_array('lms_admin', (array) $user->roles)) {
-        if (!in_array('wdm_instructor', (array) $user->roles)) {
-            $user->add_role('wdm_instructor');
-            update_user_meta($user->ID, 'ir_is_instructor', 'yes');
-            update_user_meta($user->ID, 'wdm_instructor_role', true);
-        }
-    }
-}, 999);
-
-// 5) Fonction pour corriger tous les utilisateurs existants (exécute une seule fois)
-function lms_admin_add_instructor_to_all() {
-    $users = get_users(array('role' => 'lms_admin'));
-    $count = 0;
-    
-    foreach ($users as $user) {
-        if (!in_array('wdm_instructor', (array) $user->roles)) {
-            $user->add_role('wdm_instructor');
-            update_user_meta($user->ID, 'ir_is_instructor', 'yes');
-            update_user_meta($user->ID, 'wdm_instructor_role', true);
-            $count++;
-        }
-    }
-    
-    return $count;
-}
-
-// 6) Exécuter automatiquement une fois à l'activation
-add_action('admin_init', function() {
-    // Vérifie si déjà exécuté
-    if (get_option('lms_admin_instructor_sync_done')) {
-        return;
-    }
-    
-    // Exécuter la synchronisation
-    $count = lms_admin_add_instructor_to_all();
-    
-    // Marquer comme fait
-    update_option('lms_admin_instructor_sync_done', true);
-    
-    // Message admin (optionnel)
-    add_action('admin_notices', function() use ($count) {
-        echo '<div class="notice notice-success is-dismissible">';
-        echo '<p><strong>✅ Synchronisation terminée :</strong> ' . $count . ' utilisateur(s) lms_admin ont reçu le rôle wdm_instructor.</p>';
-        echo '</div>';
-    });
-}, 1);
-
 // === administrateur LMS ===
 /**
  * Rôle "Administrateur LMS" : mêmes capacités qu'Administrator (pour le front),
@@ -4006,8 +3912,7 @@ add_action('admin_init', function() {
  *
  * - Crée/MAJ le rôle `lms_admin`
  * - Copie TOUTES les capabilities du rôle `administrator`
- * - Ajoute 'group_leader' + 'wdm_instructor' (pour dashboard instructeur)
- * - Bloque l'accès à /wp-admin/ SAUF dashboard instructeur + création de cours
+ * - Bloque l'accès à /wp-admin/ SAUF création de cours
  * - Cache la barre d'admin sur le front
  * - Autorise `lms_admin` pour [ld_user_admin] et [ld_notify_manager]
  */
@@ -4026,12 +3931,6 @@ add_action('init', function () {
     foreach ((array) $admin->capabilities as $cap => $grant) {
       if ($grant) $role->add_cap($cap);
     }
-    // Ajouter les caps nécessaires pour le dashboard instructeur
-    $role->add_cap('group_leader');
-    $role->add_cap('wdm_instructor');
-    $role->add_cap('instructor_page');
-    $role->add_cap('instructor_reports');
-    
     // Capacités pour la création/édition de cours LearnDash
     $role->add_cap('edit_courses');
     $role->add_cap('edit_course');
@@ -4060,16 +3959,6 @@ add_action('init', function () {
     $role->add_cap('publish_quizzes');
   }
   
-  // Ajouter aussi le rôle wdm_instructor aux utilisateurs lms_admin
-  $current_user = wp_get_current_user();
-  if ($current_user && $current_user->ID > 0 && in_array('lms_admin', (array) $current_user->roles)) {
-    if (!in_array('wdm_instructor', (array) $current_user->roles)) {
-      $current_user->add_role('wdm_instructor');
-    }
-    // Métadonnées instructeur
-    update_user_meta($current_user->ID, 'ir_is_instructor', 'yes');
-    update_user_meta($current_user->ID, 'wdm_instructor_role', true);
-  }
 });
 
 /* 2) Bloquer l'accès au back-office pour lms_admin SAUF dashboard instructeur + création de cours */
@@ -4095,12 +3984,6 @@ add_action('admin_init', function () {
   
   // Pages autorisées pour lms_admin
   $allowed_conditions = array(
-    // Pages du dashboard instructeur
-    strpos($current_page, 'ir_') === 0,
-    strpos($current_page, 'instructor') !== false,
-    strpos($request_uri, 'ir_instructor') !== false,
-    strpos($request_uri, 'instructor-role') !== false,
-    
     // Post types LearnDash (courses, lessons, topics, quiz)
     $post_type === 'sfwd-courses',
     $post_type === 'sfwd-lessons',
@@ -4155,14 +4038,9 @@ add_action('admin_init', function () {
         return; // AUTORISER
       }
       
-      // Autoriser aussi si le screen contient "instructor"
-      if (strpos($screen->id, 'instructor') !== false || 
-          strpos($screen->id, 'ir_') !== false) {
-        return; // AUTORISER
-      }
     }
   }
-  
+
   // ❌ Bloquer tout le reste de wp-admin
   if (is_admin()) {
     wp_safe_redirect(home_url('/'));
@@ -4194,102 +4072,6 @@ add_filter('ldn_allowed_roles', function ($roles) {
   $roles[] = 'lms_admin';
   return array_values(array_unique($roles));
 });
-
-/* 5) S'assurer que wdm_instructor est toujours premier dans l'ordre des rôles */
-add_action('wp_login', function ($user_login, $user) {
-  if (in_array('lms_admin', (array) $user->roles)) {
-    // Ajouter wdm_instructor si manquant
-    if (!in_array('wdm_instructor', (array) $user->roles)) {
-      $user->add_role('wdm_instructor');
-    }
-    
-    // Réorganiser les rôles : wdm_instructor en PREMIER
-    $roles = $user->roles;
-    
-    // Retirer wdm_instructor de sa position
-    $key = array_search('wdm_instructor', $roles);
-    if ($key !== false) {
-      unset($roles[$key]);
-    }
-    
-    // Supprimer tous les rôles
-    foreach ($user->roles as $role) {
-      $user->remove_role($role);
-    }
-    
-    // Réajouter dans le bon ordre : wdm_instructor EN PREMIER
-    $user->add_role('wdm_instructor');
-    foreach ($roles as $role) {
-      if ($role !== 'wdm_instructor') {
-        $user->add_role($role);
-      }
-    }
-    
-    // Métadonnées
-    update_user_meta($user->ID, 'ir_is_instructor', 'yes');
-    update_user_meta($user->ID, 'wdm_instructor_role', true);
-    
-    // Nettoyer le cache
-    wp_cache_delete($user->ID, 'users');
-  }
-}, 10, 2);
-
-/* 6) Forcer wdm_instructor en premier à chaque chargement de page */
-add_action('init', function () {
-  if (!is_user_logged_in()) return;
-  
-  $user = wp_get_current_user();
-  if (!$user || $user->ID == 0) return;
-  
-  if (in_array('lms_admin', (array) $user->roles)) {
-    // Vérifier si wdm_instructor est le premier rôle
-    if (!isset($user->roles[0]) || $user->roles[0] !== 'wdm_instructor') {
-      // Réorganiser
-      $roles = $user->roles;
-      
-      // Retirer wdm_instructor
-      $key = array_search('wdm_instructor', $roles);
-      if ($key !== false) {
-        unset($roles[$key]);
-      }
-      
-      // Supprimer tous
-      foreach ($user->roles as $role) {
-        $user->remove_role($role);
-      }
-      
-      // Réajouter dans le bon ordre
-      $user->add_role('wdm_instructor');
-      foreach ($roles as $role) {
-        if ($role !== 'wdm_instructor') {
-          $user->add_role($role);
-        }
-      }
-      
-      // Nettoyer le cache
-      wp_cache_delete($user->ID, 'users');
-    }
-  }
-}, 999);
-
-/* 7) Debug : Afficher les infos sur les pages autorisées (OPTIONNEL - à retirer en prod) */
-/*
-add_action('admin_notices', function() {
-  if (!current_user_can('manage_options')) return;
-  
-  $user = wp_get_current_user();
-  $current_page = isset($_GET['page']) ? $_GET['page'] : '';
-  $post_type = isset($_GET['post_type']) ? $_GET['post_type'] : '';
-  
-  echo '<div class="notice notice-info">';
-  echo '<p><strong>DEBUG LMS Admin :</strong></p>';
-  echo '<p>Rôles : ' . implode(', ', $user->roles) . '</p>';
-  echo '<p>Premier rôle : ' . (isset($user->roles[0]) ? $user->roles[0] : 'aucun') . '</p>';
-  echo '<p>Page actuelle : ' . $current_page . '</p>';
-  echo '<p>Post type : ' . $post_type . '</p>';
-  echo '</div>';
-});
-*/
 
 // === lmsadmin groupleader ===
 
