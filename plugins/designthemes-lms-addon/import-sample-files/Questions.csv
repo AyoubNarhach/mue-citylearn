@@ -1,0 +1,17 @@
+Title,Question,"Question Type(multiple-choice,multiple-choice-image,multiple-correct,boolean,gap-fill,single-line,multi-line)
+","Answers ( Separate answers with ""|"" )","Correct Answer ( Separate answers with ""|"" )",Answer Hint,Answer Explanation
+CSV Question 1,"<h4>In this problem, what is 6?</h4>
+2 X 6 = 12",multiple-choice,Sum|Addend|Factor|Product,Product,b,"<p>Look at this problem:</p><p>2 X 6 = 12</p>
+<p>In this problem, <b>6 is an product.</b></p>"
+CSV Question 2,"<h4>How many reptiles are there?</h4><img class=""alignnone size-full wp-image-7102"" src=""http://wedesignthemes.com/themes/lms/pointssystem/wp-content/uploads/sites/8/2016/09/reptiles.png"" alt=""reptiles"" width=""145"" height=""95"" /><img class=""alignnone size-full wp-image-7102"" src=""http://wedesignthemes.com/themes/lms/pointssystem/wp-content/uploads/sites/8/2016/09/reptiles.png"" alt=""reptiles"" width=""145"" height=""95"" />",multiple-choice-image,http://wedesignthemes.com/themes/lms/pointssystem/wp-content/uploads/sites/8/2016/09/num1.png|http://wedesignthemes.com/themes/lms/pointssystem/wp-content/uploads/sites/8/2016/09/num2.png|http://wedesignthemes.com/themes/lms/pointssystem/wp-content/uploads/sites/8/2016/09/num3.png,http://wedesignthemes.com/themes/lms/pointssystem/wp-content/uploads/sites/8/2016/09/num2.png,d,<p>Count each reptiles.</p><p><b>Answer is 2.</b></p>
+CSV Question 3,Out of which are all contients?,multiple-correct,Asia|India|Africa|Mexico|America,Asia|Africa|America,c,"Africa, the Americas, Antarctica, Asia, Australia together with Oceania, and Europe are considered to be Continents."
+CSV Question 4,"<h4>There are enough crayons for every piece of paper?</h4>
+<img class=""alignnone size-medium wp-image-7133"" src=""http://wedesignthemes.com/themes/lms/pointssystem/wp-content/uploads/sites/8/2016/09/note-book-300x118.png"" alt=""note-book"" width=""300"" height=""118"" />",boolean,,FALSE,f,<p>Make pairs.</p><p>Some pieces of paper are not paired with a crayon.</p><p>The correct answer is: <b>False.</b> There are not enough crayons for every piece of paper.</p>
+CSV Question 5,"question<h4>How many hats are there?</h4>
+<img class=""alignnone size-medium wp-image-7129"" src=""http://wedesignthemes.com/themes/lms/pointssystem/wp-content/uploads/sites/8/2016/09/cap.png"" alt=""cap"" width=""190"" height=""218"" />",gap-fill,There are|hats. ( In Letters ),six,a,<p>Look at the picture.</p><p>There are <b>six</b> hats.</p>
+CSV Question 6,India prime minister ?,single-line,,Narendara Modi,g,
+CSV Question 7,"List out some birds name.[vc_row][vc_column width=""1/2""][vc_video link=""http://www.youtube.com/watch?v=dQw4w9WgXcQ""][vc_column_text]
+
+[audio src=""http://localhost/edu/wp-content/uploads/2017/09/SampleAudio_0.4mb.mp3""]
+
+[/vc_column_text][/vc_column][vc_column width=""1/2""][vc_column_text]Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Etiam sed dui ultrices, iaculis tellus non, bibendum nisl[/vc_column_text][vc_column_text]I am text block. Click edit button to change this text. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut elit tellus, luctus nec ullamcorper mattis, pulvinar dapibus leo.[/vc_column_text][vc_column_text]Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Etiam sed dui ultrices, iaculis tellus non, bibendum nisl[/vc_column_text][/vc_column][/vc_row]",multi-line,,,e,

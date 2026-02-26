@@ -1,0 +1,10 @@
+.dtportfolio-remove-footer footer { display: none; }
+.dtportfolio-transparent-header #header { z-index: 9; }
+
+.dtportfolio-single-mediaontop-section { float: left; }
+.dtportfolio-transparent-header #portfolio-featured-video { position: absolute; }
+.dtportfolio-transparent-header .dtportfolio-single-mediaontop-section { float: none; }
+
+.dtportfolio-transparent-header #header.header-top-absolute, .dtportfolio-transparent-header #header { position: absolute; top: 0; left: 0; overflow: hidden; }
+.dtportfolio-transparent-header #header-wrapper { margin: 0; }
+.dtportfolio-transparent-header.no-breadcrumb #main { margin-top: 0; }

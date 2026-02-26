@@ -1,0 +1,55 @@
+@import url('https://fonts.googleapis.com/css?family=Lovers+Quarrel');
+
+@import url('https://fonts.googleapis.com/css?family=Great+Vibes');
+
+/***<< Certificate Styles have to go to Frontend.css >>***/
+
+/*.dtlms-print-content { display: none; }*/
+
+.dtlms-container .dtlms-certificate { position: absolute; display: inline-block; width: 100%; margin: 0 auto; left: 0; right: 0; }
+
+.dtlms-container .dtlms-certificate-content { display: inline-block; margin: 0 auto; text-align: center; padding: 0 60px; }
+
+.dtlms-certificate-1.dtlms-certificate-content .dtlms-certificate-heading .vc_custom_heading, .dtlms-certificate-2.dtlms-certificate-content .dtlms-certificate-heading, .dtlms-certificate-2.dtlms-certificate-content .vc_custom_heading, .dtlms-certificate-3.dtlms-certificate-content .dtlms-certificate-heading, .dtlms-certificate-3.dtlms-certificate-content .vc_custom_heading { margin-bottom: 0px; padding-top: 0px; }
+.dtlms-certificate-1.dtlms-certificate-content .wpb_text_column, .dtlms-certificate-1.dtlms-certificate-content .wpb_single_image, .dtlms-certificate-1.dtlms-certificate-content .dtlms-certificate-date .wpb_text_column, .dtlms-certificate-2.dtlms-certificate-content .wpb_single_image, .dtlms-certificate-2.dtlms-certificate-content .wpb_text_column, .dtlms-certificate-3.dtlms-certificate-content .wpb_single_image, 
+.dtlms-certificate-3.dtlms-certificate-content .wpb_text_column { margin-bottom: 0; }
+.dtlms-certificate-1.dtlms-certificate-content .dtlms-certificate-date-container .vc_custom_heading, .dtlms-certificate-1.dtlms-certificate-content .dtlms-certificate-sign .vc_custom_heading { padding-top: 5px; }
+.dtlms-certificate-2.dtlms-certificate-content .dtlms-certificate-date-container .vc_custom_heading, .dtlms-certificate-2.dtlms-certificate-content .dtlms-certificate-sign .vc_custom_heading { padding-top:15px; }
+.dtlms-certificate-1.dtlms-certificate-content .dtlms-certificate-status, .dtlms-certificate-2.dtlms-certificate-content .dtlms-certificate-status, .dtlms-certificate-3.dtlms-certificate-content .dtlms-certificate-status { margin-bottom: 35px; }
+
+.dtlms-certificate-1.dtlms-certificate-content .dtlms-certificate-studentname, .dtlms-certificate-2.dtlms-certificate-content .dtlms-certificate-studentname { display: inline-block; text-align: center; font-size: 45px; font-weight: bold; text-transform: capitalize; color: #434244; font-family: Libre Baskerville; line-height: 32px; border-bottom: 2px solid #828182; width: 80%; }
+
+/* Certificate-1 */
+
+.dtlms-certificate-content.dtlms-certificate-1 .dtlms-certificate-logo { position: relative; margin: 0; }
+.dtlms-certificate-content.dtlms-certificate-1 .dtlms-certificate-logo .wpb_heading { font-size: 28px; position: absolute; left: 0; right: 0; top: 50%; bottom: 0; margin: auto; font-weight: 600; color: #434244; font-family: Libre Baskerville; -moz-transform: translateY(-50%); -webkit-transform: translateY(-50%); transform: translateY(-50%);}
+.dtlms-certificate-content.dtlms-certificate-1 .dtlms-certificate-status p { font-size: 20px; color: #c49a6c; line-height: normal; text-align: center; font-family: Lora; font-weight: 700; font-style: normal; display: inline-block; text-transform: uppercase;
+margin-bottom:0; }
+.dtlms-certificate-1.dtlms-certificate-content .dtlms-certificate-itemname, .dtlms-certificate-1.dtlms-certificate-content .dtlms-certificate-userpercentage { display: inline-block; font-size: 20px; color: #000000; line-height: normal; text-align: center; font-family: lora; font-weight: 500; margin: 0 5px 0; padding: 5px; background: #fdee03; text-transform: uppercase; }
+.dtlms-certificate-1.dtlms-certificate-content .dtlms-certificate-date-container .dtlms-certificate-date { color: #414042; font-family: Libre Baskerville; font-size: 18px; line-height: normal; text-transform: capitalize; font-weight: 700; }
+.dtlms-certificate-1.dtlms-certificate-content .dtlms-certificate-date-container .vc_custom_heading, .dtlms-certificate-1.dtlms-certificate-content .dtlms-certificate-sign .vc_custom_heading { border-top-width: 2px; border-top-color: #000; border-top-style: solid; text-transform: capitalize; width: 50%; margin: 0 auto; }
+
+/* Certificate-2 */
+
+.dtlms-certificate-content.dtlms-certificate-2 .dtlms-certificate-status p { display: inline-block; font-size: 30px; color: #434244; line-height: normal; text-align: center; font-family: Lora; font-weight: 400; font-style: normal; margin-bottom: 0; }
+.dtlms-certificate-2.dtlms-certificate-content .dtlms-certificate-itemname, .dtlms-certificate-2.dtlms-certificate-content .dtlms-certificate-userpercentage { display: inline-block; font-size: 35px; color: #c49669; line-height: normal; text-align: center;font-family: Lora; font-weight: 700; font-style: normal; margin: 0 5px 0; }
+.dtlms-certificate-2.dtlms-certificate-content .dtlms-certificate-date { color: #414042; font-family: Lora; font-size: 18px; line-height: 50px; text-transform: capitalize; font-weight: 700; }
+.dtlms-certificate-2.dtlms-certificate-content .dtlms-certificate-date .vc_custom_heading, .dtlms-certificate-2.dtlms-certificate-content .dtlms-certificate-sign .vc_custom_heading { border-top-width: 2px; border-top-color: #000; border-top-style: dashed; text-transform: capitalize; width: 50%; margin: 0 auto; }
+.dtlms-certificate-2.dtlms-certificate-content .dtlms-certificate-sign .wpb_single_image { margin-bottom: 10px; }
+
+/* Certificate-3 */
+
+.dtlms-certificate-3.dtlms-certificate-content .dtlms-certificate-heading strong { font-family: Lovers Quarrel; font-weight: 400; }
+.dtlms-certificate-3.dtlms-certificate-content .dtlms-certificate-studentname { display: inline-block; text-align: center; width: 80%; font-size: 45px; font-weight: bold; text-transform: capitalize; color: #a17b30; font-family: Libre Baskerville; 
+line-height: 40px; }
+.dtlms-certificate-3.dtlms-certificate-content .dtlms-certificate-status p { display: inline-block; font-size: 40px; color: #a17b30; line-height: normal; text-align: center; font-family: Lovers Quarrel; font-weight: 400; font-style: normal; margin-bottom: 0; }
+.dtlms-certificate-3.dtlms-certificate-content .dtlms-certificate-itemname, .dtlms-certificate-3.dtlms-certificate-content .dtlms-certificate-userpercentage { display: inline-block; font-size: 30px; color: #a17b30; line-height: normal; text-align: center;font-family: Roboto Slab; font-weight: 700; font-style: normal; margin: 0 5px 0; }
+.dtlms-certificate-3.dtlms-certificate-content .dtlms-certificate-date-container { color: #414042; font-family: Libre Baskerville; font-size: 18px; line-height: 50px; text-transform: capitalize; font-weight: 700; }
+.dtlms-certificate-3.dtlms-certificate-content .dtlms-certificate-date-container .vc_custom_heading, .dtlms-certificate-3.dtlms-certificate-content .dtlms-certificate-sign .vc_custom_heading { border-bottom-width: 2px; border-bottom-color: #b39455; 
+border-bottom-style: solid; text-transform: capitalize; width: 100%; margin: 0; }
+
+.dtlms-certificate-3.dtlms-certificate-content .dtlms-certificate-date-container, .dtlms-certificate-3.dtlms-certificate-content .dtlms-certificate-sign { position: relative; display: inline-block; }
+.dtlms-certificate-3.dtlms-certificate-content .dtlms-certificate-sign .wpb_single_image { position: relative; margin: -50px 0 0 0; }
+.dtlms-certificate-3.dtlms-certificate-content .dtlms-certificate-date-container .wpb_text_column { position: relative; margin: -42px 0 0 0; }
+.dtlms-certificate-3.dtlms-certificate-content .dtlms-certificate-date, .dtlms-certificate-3.dtlms-certificate-content .dtlms-certificate-sign .wpb_single_image img { position: absolute; right: 0; left:0; margin: auto; }
+.dtlms-certificate-3.dtlms-certificate-content .dtlms-certificate-date { font-size: 18px; font-weight: 400; }

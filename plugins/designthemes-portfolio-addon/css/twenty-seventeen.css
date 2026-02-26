@@ -1,0 +1,32 @@
+.dtportfolio-remove-featured-image .single-featured-image-header { display: none; }
+.dtportfolio-item figure { margin: 0; }
+.entry-content a, .entry-content a:hover, ul.commentlist li .reply a:hover, ul.commentlist li .reply a, .entry-content a:focus { -webkit-box-shadow: none; box-shadow: none; }
+.dtportfolio-item figure img { display: block; }
+input[type="text"], input[type="email"], input[type="url"], input[type="password"], input[type="search"], input[type="number"], input[type="tel"], input[type="range"], input[type="date"], input[type="month"], input[type="week"], input[type="time"], input[type="datetime"], input[type="datetime-local"], input[type="color"], textarea { margin-bottom: 20px; }
+#comments { padding: 10px 0; }
+a:focus { outline: none; }
+
+
+.dtportfolio-transparent-header .custom-header-media, .dtportfolio-transparent-header .site-branding, .dtportfolio-remove-sitetitle .entry-header, .dtportfolio-remove-footer footer { display: none; }
+.dtportfolio-transparent-header .navigation-top { background: rgba(255, 255, 255, 0.5); }
+.dtportfolio-transparent-header .site-header { position: absolute; width: 100%; }
+.dtportfolio-transparent-header .site-content, .page:not(.home).dtportfolio-transparent-header #content { padding: 0; }
+
+/*.page-two-column .dtportfolio-container .dtportfolio-one-fourth, .page-two-column .dtportfolio-container .dtportfolio-column.no-space.dtportfolio-one-fourth, .page-two-column .dtportfolio-container .dtportfolio-one-third, .page-two-column .dtportfolio-container .dtportfolio-column.no-space.dtportfolio-one-third { width: 100%; }*/
+
+.dtportfolio-container .dtportfolio-one-fourth.dtportfolio-hover-modern-title .dtportfolio-image-overlay-details { right: 0; }
+.dtportfolio-one-fourth.dtportfolio-hover-title-overlay .dtportfolio-image-overlay-details { right: 10px; }
+
+.dtportfolio-item.dtportfolio-hover-with-intro .dtportfolio-image-overlay-details p { margin: 0; }
+
+.dtportfolio-single-mediaontop-section-holder { margin-bottom: 50px; }
+
+body:not(.twentyseventeen-front-page) .entry-header { padding: 0; }
+.page.page-one-column .entry-header, .entry-header .entry-title { margin: 0; }
+
+.dtportfolio-fixed-content { z-index: 6; }
+
+@media only screen and (max-width: 767px) {
+	.dtportfolio-transparent-header .site-header { position: relative; }
+}
+
