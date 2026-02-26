@@ -41,16 +41,37 @@ if ( ! function_exists( 'wdm_is_instructor' ) ) {
 
 		$user_info = get_userdata( $user_id );
 
-		if ( $user_info && (
-			in_array( 'wdm_instructor', $user_info->roles ) ||
-			(
-				in_array( 'lms_admin', $user_info->roles ) &&
-				// lms_admin est instructeur uniquement en back-office et via REST API,
-				// pas sur les pages frontend (évite le double affichage des listes de cours).
-				( is_admin() || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) )
-			)
-		) ) {
+		if ( $user_info && in_array( 'wdm_instructor', $user_info->roles ) ) {
 			$is_instructor = true;
+		} elseif ( $user_info && in_array( 'lms_admin', $user_info->roles ) ) {
+			// lms_admin est instructeur uniquement dans les contextes du panel instructeur :
+			// - page admin directe (pas AJAX, pas REST)
+			// - appel AJAX du plugin instructor-role (actions ir_/wdm_/fdb_)
+			// - requête REST API vers le namespace ir/v1
+			// Exclure : AJAX frontend (pagination LD), REST API LearnDash (ldlms/v1/…).
+			$doing_ajax = defined( 'DOING_AJAX' ) && DOING_AJAX;
+			$doing_rest = defined( 'REST_REQUEST' ) && REST_REQUEST;
+
+			if ( is_admin() && ! $doing_ajax && ! $doing_rest ) {
+				// Page admin directe → instructeur.
+				$is_instructor = true;
+			} elseif ( $doing_ajax ) {
+				// AJAX : seulement si l'action vient du plugin instructor-role.
+				$action = (string) ( $_REQUEST['action'] ?? '' );
+				if (
+					strpos( $action, 'ir_' ) === 0 ||
+					strpos( $action, 'wdm_' ) === 0 ||
+					strpos( $action, 'fdb_' ) === 0
+				) {
+					$is_instructor = true;
+				}
+			} elseif ( $doing_rest ) {
+				// REST : seulement pour le namespace ir/v1 (panel instructeur).
+				$route = (string) ( $_SERVER['REQUEST_URI'] ?? '' );
+				if ( strpos( $route, '/ir/v1/' ) !== false ) {
+					$is_instructor = true;
+				}
+			}
 		}
 
 		/**
