@@ -6214,27 +6214,47 @@ if (!defined('LMSAA_BOOTSTRAP')) {
 
 // === Fix Rôle Instructor WDM (global — tous les instructeurs) ===
 /**
- * v1.0 — Corrige les deux bugs causés par le rôle wdm_instructor :
+ * WDMFIX v2.0 — Corrige les bugs causés par le plugin WDM Instructor Role.
  *
- * BUG 1 — Pagination page 2 vide :
- *   WDM Instructor injecte « post_author = user_id » dans toutes les WP_Query
- *   sfwd-courses. L'instructeur ne voit que ses cours CRÉÉS, pas ses cours ASSIGNÉS.
- *   Si tous ses cours créés tiennent dans la page 1, la page 2 = 0 résultat.
- *   Fix : supprimer la restriction post_author dans pre_get_posts (prio 999)
- *         + posts_where en filet SQL. Actif pendant l'AJAX de pagination LD.
+ * ANALYSE DES CAUSES RACINES (code source vérifié) :
  *
- * BUG 2 — SCORM → 100% après le 1er step complété :
- *   WDM force la complétion du cours pour les instructeurs en appelant
- *   update_user_meta($uid, 'course_completed_{id}', timestamp) dès qu'un
- *   instructeur complète n'importe quel step (leçon, topic, SCORM...).
- *   Fix : intercepter cette écriture via update_user_metadata / add_user_metadata
- *         et bloquer si tous les steps ne sont pas réellement terminés.
+ * BUG 1 — Pagination page 2 vide pour les instructeurs :
+ *   → WDM « wdm_set_author() » (class-instructor-role-admin.php:83) injecte
+ *     author__in = [user_id] dans toute WP_Query sfwd-courses quand is_admin=true.
+ *     L'AJAX de pagination LD passe par admin-ajax.php → is_admin()=true.
+ *     Résultat : seuls les cours CRÉÉS par l'instructeur apparaissent,
+ *     pas les cours ASSIGNÉS (ir_shared_courses). Page 2 = 0 résultats.
+ *   FIX :
+ *     a) Filtre learndash_user_get_enrolled_courses (prio 20) : inclure TOUS les cours
+ *        de l'instructeur via ir_get_instructor_complete_course_list() (créés + partagés).
+ *     b) pre_get_posts (prio 999) : supprimer author / author__in.
+ *     c) posts_where (prio 999) : filet SQL pour supprimer post_author = N.
+ *
+ * BUG 2 — SCORM → 100% dès le 1er step complété :
+ *   → WDM « irByPassInstructorPreviousCompleted() » (class-instructor-role-admin.php:791)
+ *     hook learndash_previous_step_completed (prio 10) → retourne TRUE pour TOUS les steps
+ *     quand l'instructeur est auteur ou partagé du cours.
+ *   → WDM « ir_bypass_instructor_user_access() » hook learndash_user_can_bypass (prio 10)
+ *     → learndash_can_user_bypass() retourne TRUE → $force=true dans
+ *     learndash_process_mark_complete() (ld-course-progress.php:733).
+ *   → WDM « irByPassInstructorLinearAccess() » hook learndash_prerequities_bypass (prio 10)
+ *     → bypass_course_limits=true → saute les vérifications de progression.
+ *   → Ces bypasses peuvent provoquer une cascade de complétion incorrecte et/ou
+ *     un affichage de progression faussé à 100%.
+ *   FIX :
+ *     a) Override learndash_previous_step_completed (prio 11, après WDM) : retourner le
+ *        statut RÉEL depuis _sfwd-course_progress en DB, pas le TRUE forcé de WDM.
+ *     b) Intercepter les écritures course_completed_{id} via update_user_metadata /
+ *        add_user_metadata : lire la progression BRUTE depuis _sfwd-course_progress
+ *        et bloquer si le cours n'est pas réellement terminé.
+ *     c) Filtre learndash_process_mark_complete (prio 11) : bloquer la complétion
+ *        automatique de leçons/cours si les enfants ne sont pas réellement terminés.
  *
  * NOTE : les admins (manage_options) et lms_admin sont EXCLUS de ces fixes.
  *   WDM Instructor leur applique déjà un bypass admin → ils n'ont pas ces bugs.
  */
 if (!defined('WDMFIX_BOOTSTRAP')) {
-  define('WDMFIX_BOOTSTRAP', '1.0');
+  define('WDMFIX_BOOTSTRAP', '2.0');
 
   /**
    * Retourne true si l'utilisateur a wdm_instructor SANS manage_options.
@@ -6243,32 +6263,98 @@ if (!defined('WDMFIX_BOOTSTRAP')) {
   function wdmfix_is_instructor(int $user_id = 0): bool {
     $uid = $user_id ?: get_current_user_id();
     if (!$uid) return false;
-    if (user_can($uid, 'manage_options')) return false; // admins exclus
+    if (user_can($uid, 'manage_options')) return false;
     $u = get_userdata($uid);
     return $u && in_array('wdm_instructor', (array)$u->roles, true);
   }
 
+  /**
+   * Lit la progression BRUTE d'un cours pour un utilisateur directement
+   * depuis le usermeta _sfwd-course_progress. Indépendant de tout cache
+   * ou filtre WDM. Retourne ['completed' => int, 'total' => int].
+   */
+  function wdmfix_get_raw_progress(int $user_id, int $course_id): array {
+    $all = get_user_meta($user_id, '_sfwd-course_progress', true);
+    if (!is_array($all) || !isset($all[$course_id])) {
+      return ['completed' => 0, 'total' => 0];
+    }
+    $p = $all[$course_id];
+    $completed = 0;
+
+    // Compter les leçons terminées
+    $course_lessons = [];
+    if (function_exists('learndash_course_get_steps_by_type')) {
+      $course_lessons = learndash_course_get_steps_by_type($course_id, 'sfwd-lessons');
+    }
+    if (!empty($p['lessons']) && is_array($p['lessons'])) {
+      foreach ($p['lessons'] as $lid => $status) {
+        if (empty($course_lessons) || in_array($lid, $course_lessons, true)) {
+          $completed += intval($status);
+        }
+      }
+    }
+
+    // Compter les topics terminés
+    $course_topics = [];
+    if (function_exists('learndash_course_get_steps_by_type')) {
+      $course_topics = learndash_course_get_steps_by_type($course_id, 'sfwd-topic');
+    }
+    if (!empty($p['topics']) && is_array($p['topics'])) {
+      foreach ($p['topics'] as $lid => $topics) {
+        if (is_array($topics)) {
+          foreach ($topics as $tid => $status) {
+            if (empty($course_topics) || in_array($tid, $course_topics, true)) {
+              $completed += intval($status);
+            }
+          }
+        }
+      }
+    }
+
+    $total = 0;
+    if (function_exists('learndash_get_course_steps_count')) {
+      $total = (int) learndash_get_course_steps_count($course_id);
+    }
+
+    return ['completed' => $completed, 'total' => $total];
+  }
+
   /* ════════════════════════════════════════════════════════════════════
-   * BUG 1 — Pagination : supprimer la restriction post_author de WDM
+   * BUG 1 — Pagination
    * ════════════════════════════════════════════════════════════════════ */
 
-  // pre_get_posts prio 999 — après les hooks WDM (ils utilisent ~prio 10)
-  // Actif sur le frontend ET pendant les requêtes AJAX de pagination LearnDash
+  // 1a. Filtre enrolled courses : inclure les cours créés ET partagés de l'instructeur.
+  //     WDM fournit ir_get_instructor_complete_course_list() qui retourne les deux.
+  //     On merge ces IDs dans la liste d'inscrits pour que LearnDash les pagine.
+  add_filter('learndash_user_get_enrolled_courses', function ($enrolled, $user_id) {
+    $uid = (int) $user_id;
+    if (!wdmfix_is_instructor($uid)) return $enrolled;
+    if (!function_exists('ir_get_instructor_complete_course_list')) return $enrolled;
+
+    $instructor_courses = ir_get_instructor_complete_course_list($uid);
+    if (!empty($instructor_courses)) {
+      $enrolled = array_values(array_unique(array_merge(
+        array_map('intval', (array) $enrolled),
+        array_map('intval', (array) $instructor_courses)
+      )));
+    }
+    return $enrolled;
+  }, 20, 2);
+
+  // 1b. pre_get_posts prio 999 — supprimer la restriction auteur de WDM
   add_action('pre_get_posts', function ($q) {
-    if (is_admin() && !wp_doing_ajax()) return; // Vraies pages admin → ne pas toucher
-    if ($q->is_main_query() && !wp_doing_ajax()) return; // Req principale non-AJAX → skip
+    if (is_admin() && !wp_doing_ajax()) return;
+    if ($q->is_main_query() && !wp_doing_ajax()) return;
     if (!wdmfix_is_instructor()) return;
 
     $pt = (array)($q->get('post_type') ?: []);
     if (!in_array('sfwd-courses', $pt, true)) return;
 
-    // Supprimer la restriction d'auteur injectée par WDM Instructor
     $q->set('author', '');
     $q->set('author__in', []);
   }, 999);
 
-  // posts_where prio 999 — filet de sécurité SQL
-  // WDM peut aussi injecter la restriction via posts_where ou posts_join
+  // 1c. posts_where prio 999 — filet SQL
   add_filter('posts_where', function ($where, $q) {
     global $wpdb;
     if (is_admin() && !wp_doing_ajax()) return $where;
@@ -6278,9 +6364,8 @@ if (!defined('WDMFIX_BOOTSTRAP')) {
     $pt = (array)($q->get('post_type') ?: []);
     if (!in_array('sfwd-courses', $pt, true)) return $where;
 
-    // Supprimer toute clause SQL "AND {posts}.post_author = N"
     $where = preg_replace(
-      '/\s+AND\s+' . preg_quote($wpdb->posts, '/') . '\.post_author\s*=\s*\d+/i',
+      '/\s+AND\s+' . preg_quote($wpdb->posts, '/') . '\.post_author\s*(=|IN\s*\()\s*[^)]*\)?/i',
       '',
       $where
     );
@@ -6288,52 +6373,123 @@ if (!defined('WDMFIX_BOOTSTRAP')) {
   }, 999, 2);
 
   /* ════════════════════════════════════════════════════════════════════
-   * BUG 2 — SCORM 100% : bloquer la complétion de cours prématurée
-   *
-   * LearnDash stocke la complétion d'un cours dans le usermeta :
-   *   course_completed_{course_id} = timestamp
-   *
-   * WDM écrit ce meta dès qu'un instructeur finit un step, sans vérifier
-   * si tous les steps du cours sont réellement terminés.
-   *
-   * On intercepte update_user_meta() et add_user_meta() via les filtres
-   * WordPress update_user_metadata / add_user_metadata :
-   *   - retourner null → WordPress procède normalement (update réel)
-   *   - retourner false → WordPress court-circuite → meta NON écrit
+   * BUG 2 — SCORM 100%
    * ════════════════════════════════════════════════════════════════════ */
-  $GLOBALS['wdmfix_checking'] = false;
 
-  $wdmfix_block_premature_completion = function ($null, $user_id, $meta_key, $meta_value) {
-    // Anti-récursion : learndash_course_progress() peut lire des metas
-    if ($GLOBALS['wdmfix_checking']) return $null;
+  // 2a. Override learndash_previous_step_completed (prio 11, après WDM prio 10)
+  //     WDM retourne TRUE pour tous les steps quand l'instructeur est auteur/partagé.
+  //     On rétablit le statut RÉEL depuis _sfwd-course_progress (DB brute).
+  //     Note : les instructeurs gardent l'accès au contenu via
+  //     learndash_prerequities_bypass (WDM prio 10), qui est un hook SÉPARÉ.
+  add_filter('learndash_previous_step_completed', function ($is_completed, $step_id, $user_id) {
+    $uid = (int) $user_id;
+    if (!wdmfix_is_instructor($uid)) return $is_completed;
 
-    // Uniquement les clés de complétion de cours LearnDash
-    if (!preg_match('/^course_completed_(\d+)$/', (string)$meta_key, $matches)) return $null;
+    // Lire la progression brute depuis la DB
+    $all_progress = get_user_meta($uid, '_sfwd-course_progress', true);
+    if (!is_array($all_progress)) return false;
 
-    $uid = (int)$user_id;
-    $cid = (int)$matches[1];
+    $post_type = get_post_type($step_id);
+    if (!$post_type) return false;
 
+    foreach ($all_progress as $cid => $progress) {
+      if ('sfwd-lessons' === $post_type) {
+        if (!empty($progress['lessons'][$step_id])) return true;
+      } elseif ('sfwd-topic' === $post_type) {
+        if (!empty($progress['topics']) && is_array($progress['topics'])) {
+          foreach ($progress['topics'] as $lesson_topics) {
+            if (is_array($lesson_topics) && !empty($lesson_topics[$step_id])) return true;
+          }
+        }
+      }
+    }
+    return false;
+  }, 11, 3);
+
+  // 2b. Bloquer les écritures prématurées de course_completed_{id}
+  //     Vérification via lecture BRUTE de _sfwd-course_progress (pas le cache LD).
+  //     Timing : add_user_meta est appelé AVANT que la progression soit sauvegardée en DB
+  //     par learndash_user_set_course_progress(). On tolère donc +1 step.
+  $wdmfix_block_completion_meta = function ($null, $user_id, $meta_key, $meta_value) {
+    if (!preg_match('/^course_completed_(\d+)$/', (string) $meta_key, $m)) return $null;
+
+    $uid = (int) $user_id;
+    $cid = (int) $m[1];
     if (!wdmfix_is_instructor($uid)) return $null;
-    if (!function_exists('learndash_course_progress')) return $null;
 
-    // Calculer la vraie progression du cours
-    $GLOBALS['wdmfix_checking'] = true;
-    $progress = learndash_course_progress(['user_id' => $uid, 'course_id' => $cid]);
-    $GLOBALS['wdmfix_checking'] = false;
+    $raw = wdmfix_get_raw_progress($uid, $cid);
+    $total = $raw['total'];
+    $db_completed = $raw['completed'];
 
-    $total     = (int)($progress['total']     ?? 0);
-    $completed = (int)($progress['completed'] ?? 0);
+    if ($total <= 0) return $null;
 
-    // Bloquer si le cours n'est pas réellement 100% terminé
-    if ($total > 0 && $completed < $total) {
-      return false; // short-circuit → update_user_meta() retourne false, rien n'est écrit
+    // Le step en cours de complétion n'est PAS encore sauvegardé en DB.
+    // On tolère +1 : si (db_completed + 1) >= total → le cours est potentiellement terminé.
+    if (($db_completed + 1) >= $total) {
+      return $null; // Laisser passer — le cours est probablement terminé
     }
 
-    return $null; // Laisser passer : cours réellement terminé
+    // Clairement pas terminé → bloquer
+    return false;
   };
+  add_filter('update_user_metadata', $wdmfix_block_completion_meta, 10, 4);
+  add_filter('add_user_metadata',    $wdmfix_block_completion_meta, 10, 4);
 
-  // Intercepter les deux fonctions (LD peut utiliser l'une ou l'autre)
-  add_filter('update_user_metadata', $wdmfix_block_premature_completion, 10, 4);
-  add_filter('add_user_metadata',    $wdmfix_block_premature_completion, 10, 4);
+  // 2c. Filtre learndash_process_mark_complete (prio 11) — bloquer la cascade
+  //     incorrecte pour les instructeurs. Si le step n'est pas un topic
+  //     (c'est un lesson/course auto-complété par cascade), vérifier que
+  //     TOUS les enfants sont réellement terminés dans la progression brute.
+  add_filter('learndash_process_mark_complete', function ($should_complete, $post, $user) {
+    if (!($post instanceof WP_Post)) return $should_complete;
+    if (!$should_complete) return $should_complete;
+
+    $uid = 0;
+    if ($user instanceof WP_User) {
+      $uid = (int) $user->ID;
+    } elseif (is_numeric($user)) {
+      $uid = (int) $user;
+    }
+    if (!$uid || !wdmfix_is_instructor($uid)) return $should_complete;
+
+    // Ne bloquer que les leçons auto-complétées (cascade depuis un topic)
+    if ('sfwd-lessons' !== $post->post_type) return $should_complete;
+
+    $course_id = 0;
+    if (function_exists('learndash_get_course_id')) {
+      $course_id = (int) learndash_get_course_id($post->ID);
+    }
+    if (!$course_id) return $should_complete;
+
+    // Lire la progression brute et vérifier que tous les topics de cette leçon sont terminés
+    $all_progress = get_user_meta($uid, '_sfwd-course_progress', true);
+    if (!is_array($all_progress) || !isset($all_progress[$course_id])) return false;
+
+    $progress = $all_progress[$course_id];
+
+    // Récupérer les topics de cette leçon
+    $lesson_topics = [];
+    if (function_exists('learndash_course_get_children_of_step')) {
+      $lesson_topics = learndash_course_get_children_of_step($course_id, $post->ID, '', 'ids', true);
+    }
+    if (empty($lesson_topics)) {
+      // Pas de topics enfants → la leçon peut être complétée directement
+      return $should_complete;
+    }
+
+    // Vérifier chaque topic enfant
+    $topics_progress = isset($progress['topics'][$post->ID]) ? $progress['topics'][$post->ID] : [];
+    foreach ($lesson_topics as $topic_id) {
+      $topic_post = get_post($topic_id);
+      if (!$topic_post) continue;
+      // On ne vérifie que les sfwd-topic (pas les quiz)
+      if ('sfwd-topic' !== $topic_post->post_type) continue;
+      if (empty($topics_progress[$topic_id])) {
+        // Ce topic n'est pas terminé → bloquer la complétion de la leçon
+        return false;
+      }
+    }
+
+    return $should_complete;
+  }, 11, 3);
 }
 
