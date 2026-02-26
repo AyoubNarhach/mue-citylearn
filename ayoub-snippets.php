@@ -3905,6 +3905,99 @@ add_action('init', function(){
     }
 });
 
+// === lmsadmin = instructeur ===
+
+/**
+ * Auto-ajout du rôle wdm_instructor pour tous les lms_admin
+ * Place ce code dans functions.php ou crée un plugin
+ */
+
+// 1) À la connexion
+add_action('wp_login', function($user_login, $user) {
+    if (in_array('lms_admin', (array) $user->roles)) {
+        if (!in_array('wdm_instructor', (array) $user->roles)) {
+            $user->add_role('wdm_instructor');
+            update_user_meta($user->ID, 'ir_is_instructor', 'yes');
+            update_user_meta($user->ID, 'wdm_instructor_role', true);
+        }
+    }
+}, 10, 2);
+
+// 2) Quand un utilisateur devient lms_admin
+add_action('set_user_role', function($user_id, $role, $old_roles) {
+    if ($role === 'lms_admin') {
+        $user = get_userdata($user_id);
+        if (!in_array('wdm_instructor', (array) $user->roles)) {
+            $user->add_role('wdm_instructor');
+            update_user_meta($user_id, 'ir_is_instructor', 'yes');
+            update_user_meta($user_id, 'wdm_instructor_role', true);
+        }
+    }
+}, 10, 3);
+
+// 3) Quand un rôle est ajouté à un utilisateur existant
+add_action('add_user_role', function($user_id, $role) {
+    if ($role === 'lms_admin') {
+        $user = get_userdata($user_id);
+        if (!in_array('wdm_instructor', (array) $user->roles)) {
+            $user->add_role('wdm_instructor');
+            update_user_meta($user_id, 'ir_is_instructor', 'yes');
+            update_user_meta($user_id, 'wdm_instructor_role', true);
+        }
+    }
+}, 10, 2);
+
+// 4) À chaque chargement de page (sécurité)
+add_action('init', function() {
+    if (!is_user_logged_in()) return;
+    
+    $user = wp_get_current_user();
+    if (in_array('lms_admin', (array) $user->roles)) {
+        if (!in_array('wdm_instructor', (array) $user->roles)) {
+            $user->add_role('wdm_instructor');
+            update_user_meta($user->ID, 'ir_is_instructor', 'yes');
+            update_user_meta($user->ID, 'wdm_instructor_role', true);
+        }
+    }
+}, 999);
+
+// 5) Fonction pour corriger tous les utilisateurs existants (exécute une seule fois)
+function lms_admin_add_instructor_to_all() {
+    $users = get_users(array('role' => 'lms_admin'));
+    $count = 0;
+    
+    foreach ($users as $user) {
+        if (!in_array('wdm_instructor', (array) $user->roles)) {
+            $user->add_role('wdm_instructor');
+            update_user_meta($user->ID, 'ir_is_instructor', 'yes');
+            update_user_meta($user->ID, 'wdm_instructor_role', true);
+            $count++;
+        }
+    }
+    
+    return $count;
+}
+
+// 6) Exécuter automatiquement une fois à l'activation
+add_action('admin_init', function() {
+    // Vérifie si déjà exécuté
+    if (get_option('lms_admin_instructor_sync_done')) {
+        return;
+    }
+    
+    // Exécuter la synchronisation
+    $count = lms_admin_add_instructor_to_all();
+    
+    // Marquer comme fait
+    update_option('lms_admin_instructor_sync_done', true);
+    
+    // Message admin (optionnel)
+    add_action('admin_notices', function() use ($count) {
+        echo '<div class="notice notice-success is-dismissible">';
+        echo '<p><strong>✅ Synchronisation terminée :</strong> ' . $count . ' utilisateur(s) lms_admin ont reçu le rôle wdm_instructor.</p>';
+        echo '</div>';
+    });
+}, 1);
 
 // === administrateur LMS ===
 /**
@@ -3913,8 +4006,8 @@ add_action('init', function(){
  *
  * - Crée/MAJ le rôle `lms_admin`
  * - Copie TOUTES les capabilities du rôle `administrator`
- * - Ajoute 'group_leader' (pour les groupes Uncanny)
- * - Bloque l'accès à /wp-admin/ SAUF dashboard LearnDash + création de cours
+ * - Ajoute 'group_leader' + 'wdm_instructor' (pour dashboard instructeur)
+ * - Bloque l'accès à /wp-admin/ SAUF dashboard instructeur + création de cours
  * - Cache la barre d'admin sur le front
  * - Autorise `lms_admin` pour [ld_user_admin] et [ld_notify_manager]
  */
@@ -3933,9 +4026,12 @@ add_action('init', function () {
     foreach ((array) $admin->capabilities as $cap => $grant) {
       if ($grant) $role->add_cap($cap);
     }
-    // Ajouter les caps pour les groupes Uncanny
+    // Ajouter les caps nécessaires pour le dashboard instructeur
     $role->add_cap('group_leader');
-
+    $role->add_cap('wdm_instructor');
+    $role->add_cap('instructor_page');
+    $role->add_cap('instructor_reports');
+    
     // Capacités pour la création/édition de cours LearnDash
     $role->add_cap('edit_courses');
     $role->add_cap('edit_course');
@@ -3963,7 +4059,17 @@ add_action('init', function () {
     $role->add_cap('edit_quiz');
     $role->add_cap('publish_quizzes');
   }
-
+  
+  // Ajouter aussi le rôle wdm_instructor aux utilisateurs lms_admin
+  $current_user = wp_get_current_user();
+  if ($current_user && $current_user->ID > 0 && in_array('lms_admin', (array) $current_user->roles)) {
+    if (!in_array('wdm_instructor', (array) $current_user->roles)) {
+      $current_user->add_role('wdm_instructor');
+    }
+    // Métadonnées instructeur
+    update_user_meta($current_user->ID, 'ir_is_instructor', 'yes');
+    update_user_meta($current_user->ID, 'wdm_instructor_role', true);
+  }
 });
 
 /* 2) Bloquer l'accès au back-office pour lms_admin SAUF dashboard instructeur + création de cours */
@@ -3989,6 +4095,12 @@ add_action('admin_init', function () {
   
   // Liste complète des pages autorisées
   $allowed_conditions = array(
+    // Pages du dashboard instructeur
+    strpos($current_page, 'ir_') === 0,
+    strpos($current_page, 'instructor') !== false,
+    strpos($request_uri, 'ir_instructor') !== false,
+    strpos($request_uri, 'instructor-role') !== false,
+    
     // Post types LearnDash (courses, lessons, topics, quiz)
     $post_type === 'sfwd-courses',
     $post_type === 'sfwd-lessons',
@@ -4043,6 +4155,11 @@ add_action('admin_init', function () {
         return; // AUTORISER
       }
       
+      // Autoriser aussi si le screen contient "instructor"
+      if (strpos($screen->id, 'instructor') !== false || 
+          strpos($screen->id, 'ir_') !== false) {
+        return; // AUTORISER
+      }
     }
   }
   
@@ -4078,6 +4195,82 @@ add_filter('ldn_allowed_roles', function ($roles) {
   return array_values(array_unique($roles));
 });
 
+/* 5) S'assurer que wdm_instructor est toujours premier dans l'ordre des rôles */
+add_action('wp_login', function ($user_login, $user) {
+  if (in_array('lms_admin', (array) $user->roles)) {
+    // Ajouter wdm_instructor si manquant
+    if (!in_array('wdm_instructor', (array) $user->roles)) {
+      $user->add_role('wdm_instructor');
+    }
+    
+    // Réorganiser les rôles : wdm_instructor en PREMIER
+    $roles = $user->roles;
+    
+    // Retirer wdm_instructor de sa position
+    $key = array_search('wdm_instructor', $roles);
+    if ($key !== false) {
+      unset($roles[$key]);
+    }
+    
+    // Supprimer tous les rôles
+    foreach ($user->roles as $role) {
+      $user->remove_role($role);
+    }
+    
+    // Réajouter dans le bon ordre : wdm_instructor EN PREMIER
+    $user->add_role('wdm_instructor');
+    foreach ($roles as $role) {
+      if ($role !== 'wdm_instructor') {
+        $user->add_role($role);
+      }
+    }
+    
+    // Métadonnées
+    update_user_meta($user->ID, 'ir_is_instructor', 'yes');
+    update_user_meta($user->ID, 'wdm_instructor_role', true);
+    
+    // Nettoyer le cache
+    wp_cache_delete($user->ID, 'users');
+  }
+}, 10, 2);
+
+/* 6) Forcer wdm_instructor en premier à chaque chargement de page */
+add_action('init', function () {
+  if (!is_user_logged_in()) return;
+  
+  $user = wp_get_current_user();
+  if (!$user || $user->ID == 0) return;
+  
+  if (in_array('lms_admin', (array) $user->roles)) {
+    // Vérifier si wdm_instructor est le premier rôle
+    if (!isset($user->roles[0]) || $user->roles[0] !== 'wdm_instructor') {
+      // Réorganiser
+      $roles = $user->roles;
+      
+      // Retirer wdm_instructor
+      $key = array_search('wdm_instructor', $roles);
+      if ($key !== false) {
+        unset($roles[$key]);
+      }
+      
+      // Supprimer tous
+      foreach ($user->roles as $role) {
+        $user->remove_role($role);
+      }
+      
+      // Réajouter dans le bon ordre
+      $user->add_role('wdm_instructor');
+      foreach ($roles as $role) {
+        if ($role !== 'wdm_instructor') {
+          $user->add_role($role);
+        }
+      }
+      
+      // Nettoyer le cache
+      wp_cache_delete($user->ID, 'users');
+    }
+  }
+}, 999);
 
 /* 7) Debug : Afficher les infos sur les pages autorisées (OPTIONNEL - à retirer en prod) */
 /*
@@ -5714,7 +5907,7 @@ add_shortcode('ld_topic_report', function($atts){
   $ajaxurl = admin_url('admin-ajax.php');
   $nonce   = wp_create_nonce('ldtr_nonce');
 
-  ob_start(); ?>
+  $inline = <<<JS
   (function(){
     function q(s,c){return (c||document).querySelector(s)}
     function qa(s,c){return (c||document).querySelectorAll(s)}
@@ -5738,10 +5931,10 @@ add_shortcode('ld_topic_report', function($atts){
 
         var fd = new FormData();
         fd.append('action','ldtr_get_topics');
-        fd.append('nonce','<?php echo esc_js($nonce); ?>');
+        fd.append('nonce','{$nonce}');
         fd.append('course_id', cid);
 
-        fetch('<?php echo esc_js($ajaxurl); ?>', {method:'POST', body:fd, credentials:'same-origin', cache:'no-store'})
+        fetch('{$ajaxurl}', {method:'POST', body:fd, credentials:'same-origin', cache:'no-store'})
           .then(r=>r.json())
           .then(function(j){
             setStatus('');
@@ -5769,12 +5962,12 @@ add_shortcode('ld_topic_report', function($atts){
 
         var fd = new FormData();
         fd.append('action','ldtr_topic_stats');
-        fd.append('nonce','<?php echo esc_js($nonce); ?>');
+        fd.append('nonce','{$nonce}');
         fd.append('course_id', cid);
         fd.append('topic_id',  tid);
         fd.append('exclude_roles', exclude);
 
-        fetch('<?php echo esc_js($ajaxurl); ?>', {method:'POST', body:fd, credentials:'same-origin', cache:'no-store'})
+        fetch('{$ajaxurl}', {method:'POST', body:fd, credentials:'same-origin', cache:'no-store'})
           .then(r=>r.json())
           .then(function(j){
             setStatus('');
@@ -5801,502 +5994,9 @@ add_shortcode('ld_topic_report', function($atts){
       });
     });
   })();
-  <?php $inline = ob_get_clean();
+  JS;
   wp_add_inline_script('ldtr-js', $inline);
 
   return $html;
 });
-
-// === LMS Admin : Accès universel aux parcours (sans inscription DB) ===
-/**
- * v5.0 — Fix AJAX : is_admin()=true pendant les requêtes AJAX de pagination
- *
- * CAUSE RACINE CONFIRMÉE :
- *   La pagination [ld_profile] / [ld_course_list] en LearnDash 5.x est gérée
- *   via AJAX (admin-ajax.php). Pendant ces requêtes AJAX :
- *     - is_admin() retourne TRUE
- *     - v4.0 sortait immédiatement de pre_get_posts → WDM Instructor sans opposition
- *     - WDM Instructor injecte « post_author = user_id » dans la WP_Query
- *     - Page 1 OK (N cours créés ≤ per_page par coïncidence)
- *     - Page 2 vide (offset > N cours créés → 0 résultat)
- *
- * SOLUTION v5.0 :
- *   a) pre_get_posts (prio 999) : exclure seulement les vraies pages admin
- *      (is_admin() && !wp_doing_ajax()) → actif pendant AJAX ✓
- *   b) posts_where (prio 999) : filet de sécurité SQL — supprime la clause
- *      "AND post_author = N" directement dans le SQL généré, indépendamment
- *      de comment WDM Instructor l'a injectée
- *
- *  1. sfwd_lms_has_access                     → accès au contenu (cours/leçons/topics/quiz)
- *  2. learndash_user_get_enrolled_courses      → tous les cours (count + page 1)
- *  3. pre_get_posts (prio 999, incl. AJAX)    → supprime post_author + meta_query WDM
- *  4. posts_where  (prio 999, filet SQL)      → supprime AND post_author=N dans le SQL
- *  5. learndash_shortcode_course_list_query_args → [ld_course_list] args
- *  6. learndash_profile_course_list_query_args   → [ld_profile] args
- *  7. pre_get_posts (prio 1, req principale)  → fix pagination page statique WP
- *  8. learndash_get_users_for_course          → exclusion des rapports
- */
-if (!defined('LMSAA_BOOTSTRAP')) {
-  define('LMSAA_BOOTSTRAP', '5.0');
-
-  /* ════════════════════════════════════════════════════════════════════
-   * Helpers
-   * ════════════════════════════════════════════════════════════════════ */
-  function lmsaa_is_lms_admin(int $user_id = 0): bool {
-    $uid = $user_id ?: get_current_user_id();
-    if (!$uid) return false;
-    $u = get_userdata($uid);
-    return $u && in_array('lms_admin', (array)$u->roles, true);
-  }
-
-  function lmsaa_all_course_ids(): array {
-    static $cache = null;
-    if ($cache !== null) return $cache;
-    $cache = get_posts([
-      'post_type'     => 'sfwd-courses',
-      'post_status'   => 'publish',
-      'numberposts'   => -1,
-      'fields'        => 'ids',
-      'orderby'       => 'title',
-      'order'         => 'ASC',
-      'no_found_rows' => true,
-    ]);
-    return is_array($cache) ? $cache : [];
-  }
-
-  /* Retourne true si on est dans un contexte où les filtres doivent s'appliquer :
-   * - frontend normal
-   * - AJAX (admin-ajax.php) → pagination LearnDash
-   * - REST API si utilisé par LD */
-  function lmsaa_is_applicable_context(): bool {
-    if (wp_doing_ajax()) return true;        // AJAX pagination LD ← cas principal
-    if (defined('REST_REQUEST') && REST_REQUEST) return true;
-    return !is_admin();                      // Frontend classique
-  }
-
-  /* ════════════════════════════════════════════════════════════════════
-   * 1. Accès virtuel au contenu (cours, leçons, topics, quiz)
-   * ════════════════════════════════════════════════════════════════════ */
-  add_filter('sfwd_lms_has_access', function ($ok, $post_id, $user_id) {
-    return ($ok || lmsaa_is_lms_admin((int)$user_id)) ? true : $ok;
-  }, 5, 3);
-
-  /* ════════════════════════════════════════════════════════════════════
-   * 2. Tous les cours pour lms_admin (comptage + liste)
-   * ════════════════════════════════════════════════════════════════════ */
-  add_filter('learndash_user_get_enrolled_courses', function ($ids, $user_id, $args) {
-    if (!lmsaa_is_lms_admin((int)$user_id)) return $ids;
-    $all = lmsaa_all_course_ids();
-    return !empty($all) ? $all : $ids;
-  }, 10, 3);
-
-  /* ════════════════════════════════════════════════════════════════════
-   * 3. pre_get_posts prio 999 — supprime restrictions WDM Instructor
-   *
-   *    v4.0 bug : if (is_admin()) return;  ← bloquait pendant AJAX
-   *    v5.0 fix : autoriser pendant AJAX via lmsaa_is_applicable_context()
-   * ════════════════════════════════════════════════════════════════════ */
-  add_action('pre_get_posts', function ($q) {
-    if (!lmsaa_is_applicable_context()) return;
-    if ($q->is_main_query() && !wp_doing_ajax()) return; // req principale non-AJAX → fix séparé
-    if (!lmsaa_is_lms_admin()) return;
-
-    $pt = (array)($q->get('post_type') ?: []);
-    if (!in_array('sfwd-courses', $pt, true)) return;
-
-    // Supprimer la restriction post_author (WDM Instructor)
-    $q->set('author', '');
-    $q->set('author__in', []);
-
-    // Supprimer meta_query d'inscription LearnDash
-    $mq = (array)$q->get('meta_query');
-    if (!empty($mq)) {
-      $mq = array_filter($mq, function ($clause) {
-        if (!is_array($clause)) return true;
-        $key = $clause['key'] ?? '';
-        if (preg_match('/^course_\d+_access_from$/', $key)) return false;
-        if (preg_match('/^course_\d+_/', $key)) return false;
-        if (in_array($key, ['ld_lms_access_from', 'learndash_group_users'], true)) return false;
-        return true;
-      });
-      $q->set('meta_query', array_values($mq));
-    }
-
-    $q->set('post_status', 'publish');
-  }, 999);
-
-  /* ════════════════════════════════════════════════════════════════════
-   * 4. posts_where prio 999 — filet de sécurité SQL
-   *
-   *    WDM Instructor peut aussi injecter la restriction via posts_where
-   *    ou posts_join (pas seulement via pre_get_posts).
-   *    On supprime "AND {posts}.post_author = N" directement dans le SQL.
-   * ════════════════════════════════════════════════════════════════════ */
-  add_filter('posts_where', function ($where, $q) {
-    global $wpdb;
-    if (!lmsaa_is_applicable_context()) return $where;
-    if (!lmsaa_is_lms_admin()) return $where;
-    $pt = (array)($q->get('post_type') ?: []);
-    if (!in_array('sfwd-courses', $pt, true)) return $where;
-    if ($q->is_main_query() && !wp_doing_ajax()) return $where;
-
-    // Supprimer toute clause "AND {table}.post_author = <id>"
-    $where = preg_replace(
-      '/\s+AND\s+' . preg_quote($wpdb->posts, '/') . '\.post_author\s*=\s*\d+/i',
-      '',
-      $where
-    );
-    return $where;
-  }, 999, 2);
-
-  /* ════════════════════════════════════════════════════════════════════
-   * 5. [ld_course_list] shortcode args
-   *
-   * IMPORTANT : NE PAS supprimer post__in.
-   * LearnDash pagine en PHP (array_slice sur learndash_user_get_enrolled_courses).
-   * post__in contient déjà la bonne tranche (ex : IDs 13-23 pour page 2).
-   * Si on le supprime → WP_Query repart du début → page 2 = doublon de page 1.
-   * On supprime seulement author/author__in et meta_query d'inscription.
-   * ════════════════════════════════════════════════════════════════════ */
-  add_filter('learndash_shortcode_course_list_query_args', function ($args, $attr) {
-    if (!lmsaa_is_lms_admin()) return $args;
-    unset($args['author'], $args['author__in']);
-    $args['meta_query'] = [];
-    return $args;
-  }, 999, 2);
-
-  /* ════════════════════════════════════════════════════════════════════
-   * 6. [ld_profile] course list args — même logique que filtre 5
-   * ════════════════════════════════════════════════════════════════════ */
-  add_filter('learndash_profile_course_list_query_args', function ($args, $user_id) {
-    if (!lmsaa_is_lms_admin((int)$user_id)) return $args;
-    unset($args['author'], $args['author__in']);
-    $args['meta_query'] = [];
-    return $args;
-  }, 999, 2);
-
-  /* ════════════════════════════════════════════════════════════════════
-   * 7. Fix pagination pages statiques (WordPress + paged=N → OFFSET)
-   *
-   *    /formations/page/2/ → pagename=formations + paged=2
-   *    SQL : WHERE post_name='formations' LIMIT 1 OFFSET 1 → 0 résultats → 404
-   *    Fix : retirer paged avant SQL (prio 1), remettre après via set_query_var
-   * ════════════════════════════════════════════════════════════════════ */
-  $GLOBALS['lmsaa_paged'] = 0;
-
-  add_action('pre_get_posts', function ($q) {
-    if (is_admin() || !$q->is_main_query()) return;
-    $pagename = $q->get('pagename') ?: $q->get('page_id');
-    $paged    = (int)$q->get('paged');
-    if (!$pagename || $paged <= 1) return;
-
-    $GLOBALS['lmsaa_paged'] = $paged;
-    $q->set('paged', 0);
-
-    add_filter('posts_results', function ($posts, $qr) use ($paged, $q) {
-      if ($qr === $q) set_query_var('paged', $paged);
-      return $posts;
-    }, PHP_INT_MAX, 2);
-  }, 1);
-
-  add_filter('pre_handle_404', function ($pre, $qr) {
-    return (!empty($qr->posts) && ($GLOBALS['lmsaa_paged'] ?? 0) > 1) ? true : $pre;
-  }, 1, 2);
-
-  add_filter('redirect_canonical', function ($url, $req) {
-    return (($GLOBALS['lmsaa_paged'] ?? 0) > 1) ? false : $url;
-  }, 1, 2);
-
-  /* ════════════════════════════════════════════════════════════════════
-   * 8. Exclure lms_admin des rapports d'inscrits
-   * ════════════════════════════════════════════════════════════════════ */
-  add_filter('learndash_get_users_for_course', function ($users, $course_id, $args) {
-    if (empty($users)) return $users;
-    $lms_ids = get_users(['role' => 'lms_admin', 'fields' => 'ID', 'number' => -1]);
-    if (empty($lms_ids)) return $users;
-    $lms_ids = array_map('intval', (array)$lms_ids);
-    return array_values(array_diff(array_map('intval', (array)$users), $lms_ids));
-  }, 20, 3);
-}
-
-// === Fix Rôle Instructor WDM (global — tous les instructeurs) ===
-/**
- * WDMFIX v2.0 — Corrige les bugs causés par le plugin WDM Instructor Role.
- *
- * ANALYSE DES CAUSES RACINES (code source vérifié) :
- *
- * BUG 1 — Pagination page 2 vide pour les instructeurs :
- *   → WDM « wdm_set_author() » (class-instructor-role-admin.php:83) injecte
- *     author__in = [user_id] dans toute WP_Query sfwd-courses quand is_admin=true.
- *     L'AJAX de pagination LD passe par admin-ajax.php → is_admin()=true.
- *     Résultat : seuls les cours CRÉÉS par l'instructeur apparaissent,
- *     pas les cours ASSIGNÉS (ir_shared_courses). Page 2 = 0 résultats.
- *   FIX :
- *     a) Filtre learndash_user_get_enrolled_courses (prio 20) : inclure TOUS les cours
- *        de l'instructeur via ir_get_instructor_complete_course_list() (créés + partagés).
- *     b) pre_get_posts (prio 999) : supprimer author / author__in.
- *     c) posts_where (prio 999) : filet SQL pour supprimer post_author = N.
- *
- * BUG 2 — SCORM → 100% dès le 1er step complété :
- *   → WDM « irByPassInstructorPreviousCompleted() » (class-instructor-role-admin.php:791)
- *     hook learndash_previous_step_completed (prio 10) → retourne TRUE pour TOUS les steps
- *     quand l'instructeur est auteur ou partagé du cours.
- *   → WDM « ir_bypass_instructor_user_access() » hook learndash_user_can_bypass (prio 10)
- *     → learndash_can_user_bypass() retourne TRUE → $force=true dans
- *     learndash_process_mark_complete() (ld-course-progress.php:733).
- *   → WDM « irByPassInstructorLinearAccess() » hook learndash_prerequities_bypass (prio 10)
- *     → bypass_course_limits=true → saute les vérifications de progression.
- *   → Ces bypasses peuvent provoquer une cascade de complétion incorrecte et/ou
- *     un affichage de progression faussé à 100%.
- *   FIX :
- *     a) Override learndash_previous_step_completed (prio 11, après WDM) : retourner le
- *        statut RÉEL depuis _sfwd-course_progress en DB, pas le TRUE forcé de WDM.
- *     b) Intercepter les écritures course_completed_{id} via update_user_metadata /
- *        add_user_metadata : lire la progression BRUTE depuis _sfwd-course_progress
- *        et bloquer si le cours n'est pas réellement terminé.
- *     c) Filtre learndash_process_mark_complete (prio 11) : bloquer la complétion
- *        automatique de leçons/cours si les enfants ne sont pas réellement terminés.
- *
- * NOTE : les admins (manage_options) et lms_admin sont EXCLUS de ces fixes.
- *   WDM Instructor leur applique déjà un bypass admin → ils n'ont pas ces bugs.
- */
-if (!defined('WDMFIX_BOOTSTRAP')) {
-  define('WDMFIX_BOOTSTRAP', '2.0');
-
-  /**
-   * Retourne true si l'utilisateur a wdm_instructor SANS manage_options.
-   * Les admins (y compris lms_admin) sont exclus — WDM ne leur pose pas de problèmes.
-   */
-  function wdmfix_is_instructor(int $user_id = 0): bool {
-    $uid = $user_id ?: get_current_user_id();
-    if (!$uid) return false;
-    if (user_can($uid, 'manage_options')) return false;
-    $u = get_userdata($uid);
-    return $u && in_array('wdm_instructor', (array)$u->roles, true);
-  }
-
-  /**
-   * Lit la progression BRUTE d'un cours pour un utilisateur directement
-   * depuis le usermeta _sfwd-course_progress. Indépendant de tout cache
-   * ou filtre WDM. Retourne ['completed' => int, 'total' => int].
-   */
-  function wdmfix_get_raw_progress(int $user_id, int $course_id): array {
-    $all = get_user_meta($user_id, '_sfwd-course_progress', true);
-    if (!is_array($all) || !isset($all[$course_id])) {
-      return ['completed' => 0, 'total' => 0];
-    }
-    $p = $all[$course_id];
-    $completed = 0;
-
-    // Compter les leçons terminées
-    $course_lessons = [];
-    if (function_exists('learndash_course_get_steps_by_type')) {
-      $course_lessons = learndash_course_get_steps_by_type($course_id, 'sfwd-lessons');
-    }
-    if (!empty($p['lessons']) && is_array($p['lessons'])) {
-      foreach ($p['lessons'] as $lid => $status) {
-        if (empty($course_lessons) || in_array($lid, $course_lessons, true)) {
-          $completed += intval($status);
-        }
-      }
-    }
-
-    // Compter les topics terminés
-    $course_topics = [];
-    if (function_exists('learndash_course_get_steps_by_type')) {
-      $course_topics = learndash_course_get_steps_by_type($course_id, 'sfwd-topic');
-    }
-    if (!empty($p['topics']) && is_array($p['topics'])) {
-      foreach ($p['topics'] as $lid => $topics) {
-        if (is_array($topics)) {
-          foreach ($topics as $tid => $status) {
-            if (empty($course_topics) || in_array($tid, $course_topics, true)) {
-              $completed += intval($status);
-            }
-          }
-        }
-      }
-    }
-
-    $total = 0;
-    if (function_exists('learndash_get_course_steps_count')) {
-      $total = (int) learndash_get_course_steps_count($course_id);
-    }
-
-    return ['completed' => $completed, 'total' => $total];
-  }
-
-  /* ════════════════════════════════════════════════════════════════════
-   * BUG 1 — Pagination
-   * ════════════════════════════════════════════════════════════════════ */
-
-  // 1a. Filtre enrolled courses : inclure les cours créés ET partagés de l'instructeur.
-  //     WDM fournit ir_get_instructor_complete_course_list() qui retourne les deux.
-  //     On merge ces IDs dans la liste d'inscrits pour que LearnDash les pagine.
-  add_filter('learndash_user_get_enrolled_courses', function ($enrolled, $user_id) {
-    $uid = (int) $user_id;
-    if (!wdmfix_is_instructor($uid)) return $enrolled;
-    if (!function_exists('ir_get_instructor_complete_course_list')) return $enrolled;
-
-    $instructor_courses = ir_get_instructor_complete_course_list($uid);
-    if (!empty($instructor_courses)) {
-      $enrolled = array_values(array_unique(array_merge(
-        array_map('intval', (array) $enrolled),
-        array_map('intval', (array) $instructor_courses)
-      )));
-    }
-    return $enrolled;
-  }, 20, 2);
-
-  // 1b. pre_get_posts prio 999 — supprimer la restriction auteur de WDM
-  add_action('pre_get_posts', function ($q) {
-    if (is_admin() && !wp_doing_ajax()) return;
-    if ($q->is_main_query() && !wp_doing_ajax()) return;
-    if (!wdmfix_is_instructor()) return;
-
-    $pt = (array)($q->get('post_type') ?: []);
-    if (!in_array('sfwd-courses', $pt, true)) return;
-
-    $q->set('author', '');
-    $q->set('author__in', []);
-  }, 999);
-
-  // 1c. posts_where prio 999 — filet SQL
-  add_filter('posts_where', function ($where, $q) {
-    global $wpdb;
-    if (is_admin() && !wp_doing_ajax()) return $where;
-    if ($q->is_main_query() && !wp_doing_ajax()) return $where;
-    if (!wdmfix_is_instructor()) return $where;
-
-    $pt = (array)($q->get('post_type') ?: []);
-    if (!in_array('sfwd-courses', $pt, true)) return $where;
-
-    $where = preg_replace(
-      '/\s+AND\s+' . preg_quote($wpdb->posts, '/') . '\.post_author\s*(=|IN\s*\()\s*[^)]*\)?/i',
-      '',
-      $where
-    );
-    return $where;
-  }, 999, 2);
-
-  /* ════════════════════════════════════════════════════════════════════
-   * BUG 2 — SCORM 100%
-   * ════════════════════════════════════════════════════════════════════ */
-
-  // 2a. Override learndash_previous_step_completed (prio 11, après WDM prio 10)
-  //     WDM retourne TRUE pour tous les steps quand l'instructeur est auteur/partagé.
-  //     On rétablit le statut RÉEL depuis _sfwd-course_progress (DB brute).
-  //     Note : les instructeurs gardent l'accès au contenu via
-  //     learndash_prerequities_bypass (WDM prio 10), qui est un hook SÉPARÉ.
-  add_filter('learndash_previous_step_completed', function ($is_completed, $step_id, $user_id) {
-    $uid = (int) $user_id;
-    if (!wdmfix_is_instructor($uid)) return $is_completed;
-
-    // Lire la progression brute depuis la DB
-    $all_progress = get_user_meta($uid, '_sfwd-course_progress', true);
-    if (!is_array($all_progress)) return false;
-
-    $post_type = get_post_type($step_id);
-    if (!$post_type) return false;
-
-    foreach ($all_progress as $cid => $progress) {
-      if ('sfwd-lessons' === $post_type) {
-        if (!empty($progress['lessons'][$step_id])) return true;
-      } elseif ('sfwd-topic' === $post_type) {
-        if (!empty($progress['topics']) && is_array($progress['topics'])) {
-          foreach ($progress['topics'] as $lesson_topics) {
-            if (is_array($lesson_topics) && !empty($lesson_topics[$step_id])) return true;
-          }
-        }
-      }
-    }
-    return false;
-  }, 11, 3);
-
-  // 2b. Bloquer les écritures prématurées de course_completed_{id}
-  //     Vérification via lecture BRUTE de _sfwd-course_progress (pas le cache LD).
-  //     Timing : add_user_meta est appelé AVANT que la progression soit sauvegardée en DB
-  //     par learndash_user_set_course_progress(). On tolère donc +1 step.
-  $wdmfix_block_completion_meta = function ($null, $user_id, $meta_key, $meta_value) {
-    if (!preg_match('/^course_completed_(\d+)$/', (string) $meta_key, $m)) return $null;
-
-    $uid = (int) $user_id;
-    $cid = (int) $m[1];
-    if (!wdmfix_is_instructor($uid)) return $null;
-
-    $raw = wdmfix_get_raw_progress($uid, $cid);
-    $total = $raw['total'];
-    $db_completed = $raw['completed'];
-
-    if ($total <= 0) return $null;
-
-    // Le step en cours de complétion n'est PAS encore sauvegardé en DB.
-    // On tolère +1 : si (db_completed + 1) >= total → le cours est potentiellement terminé.
-    if (($db_completed + 1) >= $total) {
-      return $null; // Laisser passer — le cours est probablement terminé
-    }
-
-    // Clairement pas terminé → bloquer
-    return false;
-  };
-  add_filter('update_user_metadata', $wdmfix_block_completion_meta, 10, 4);
-  add_filter('add_user_metadata',    $wdmfix_block_completion_meta, 10, 4);
-
-  // 2c. Filtre learndash_process_mark_complete (prio 11) — bloquer la cascade
-  //     incorrecte pour les instructeurs. Si le step n'est pas un topic
-  //     (c'est un lesson/course auto-complété par cascade), vérifier que
-  //     TOUS les enfants sont réellement terminés dans la progression brute.
-  add_filter('learndash_process_mark_complete', function ($should_complete, $post, $user) {
-    if (!($post instanceof WP_Post)) return $should_complete;
-    if (!$should_complete) return $should_complete;
-
-    $uid = 0;
-    if ($user instanceof WP_User) {
-      $uid = (int) $user->ID;
-    } elseif (is_numeric($user)) {
-      $uid = (int) $user;
-    }
-    if (!$uid || !wdmfix_is_instructor($uid)) return $should_complete;
-
-    // Ne bloquer que les leçons auto-complétées (cascade depuis un topic)
-    if ('sfwd-lessons' !== $post->post_type) return $should_complete;
-
-    $course_id = 0;
-    if (function_exists('learndash_get_course_id')) {
-      $course_id = (int) learndash_get_course_id($post->ID);
-    }
-    if (!$course_id) return $should_complete;
-
-    // Lire la progression brute et vérifier que tous les topics de cette leçon sont terminés
-    $all_progress = get_user_meta($uid, '_sfwd-course_progress', true);
-    if (!is_array($all_progress) || !isset($all_progress[$course_id])) return false;
-
-    $progress = $all_progress[$course_id];
-
-    // Récupérer les topics de cette leçon
-    $lesson_topics = [];
-    if (function_exists('learndash_course_get_children_of_step')) {
-      $lesson_topics = learndash_course_get_children_of_step($course_id, $post->ID, '', 'ids', true);
-    }
-    if (empty($lesson_topics)) {
-      // Pas de topics enfants → la leçon peut être complétée directement
-      return $should_complete;
-    }
-
-    // Vérifier chaque topic enfant
-    $topics_progress = isset($progress['topics'][$post->ID]) ? $progress['topics'][$post->ID] : [];
-    foreach ($lesson_topics as $topic_id) {
-      $topic_post = get_post($topic_id);
-      if (!$topic_post) continue;
-      // On ne vérifie que les sfwd-topic (pas les quiz)
-      if ('sfwd-topic' !== $topic_post->post_type) continue;
-      if (empty($topics_progress[$topic_id])) {
-        // Ce topic n'est pas terminé → bloquer la complétion de la leçon
-        return false;
-      }
-    }
-
-    return $should_complete;
-  }, 11, 3);
-}
 
