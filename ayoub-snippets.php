@@ -3990,24 +3990,30 @@ add_action('admin_init', function () {
     $post_type === 'sfwd-topic',
     $post_type === 'sfwd-quiz',
     $post_type === 'sfwd-question',
-    
+
     // Édition de posts LearnDash
     ($action === 'edit' && $post),
-    
+
     // Pages d'édition directes
     strpos($request_uri, 'post.php') !== false,
     strpos($request_uri, 'post-new.php') !== false,
-    
+
     // Admin AJAX pour les builders
     strpos($request_uri, 'admin-ajax.php') !== false,
-    
+
     // Media library (pour les images de cours)
     strpos($request_uri, 'upload.php') !== false,
     strpos($request_uri, 'media-upload.php') !== false,
     $current_page === 'upload',
-    
+
     // Async upload (pour l'upload d'images)
     strpos($request_uri, 'async-upload.php') !== false,
+
+    // Espace instructeur (plugin instructor-role) : toutes les pages ir_*
+    strpos($current_page, 'ir_') === 0,
+    // Page admin du plugin instructor-role (slug avec typo intentionnelle du plugin)
+    $current_page === 'instuctor',
+    $current_page === 'instructor_lms_reports',
   );
   
   // Si au moins une condition est vraie, autoriser l'accès
@@ -5783,21 +5789,23 @@ JS;
 });
 
 
-// === Instructor-role : accès complet espace instructeur pour lms_admin ===
+// === Instructor-role : espace instructeur pour lms_admin ===
 /**
- * La page ir_instructor_overview requiert la capability 'edit_courses'
- * (menu_page_capability dans class-instructor-role-overview.php).
+ * lms_admin est nativement reconnu comme instructeur dans le plugin
+ * (instructor-role-functions.php : wdm_is_instructor() inclut lms_admin).
  *
- * On utilise le filtre user_has_cap (pas init + add_cap) car WordPress construit
- * le tableau allcaps de l'utilisateur courant AVANT le hook init — écrire en DB
- * via add_cap() est donc trop tardif pour la requête en cours.
- * user_has_cap s'applique à CHAQUE appel current_user_can(), sans délai ni DB.
+ * Seuls deux mécanismes complémentaires restent ici :
+ * 1. user_has_cap : garantit les caps instructeur dès la 1ère requête
+ *    (avant que init ait pu écrire en DB), sans timing issue.
+ * 2. ir_filter_get_settings : empêche le redirect "disable backend dashboard"
+ *    que le plugin appliquerait sinon à lms_admin comme à tout instructeur.
+ *
+ * La restriction de contenu (auteur uniquement) est levée dans le plugin :
+ *   class-instructor-role-admin.php → wdm_set_author() bypass lms_admin.
+ * La liste complète de cours est gérée dans le plugin :
+ *   instructor-role-functions.php → ir_get_instructor_complete_course_list().
  */
 
-/**
- * Étape 1 — Capabilities dynamiques : injecte toutes les caps instructeur
- * dans les vérifications current_user_can() pour lms_admin.
- */
 add_filter( 'user_has_cap', function ( $allcaps, $caps, $args, $user ) {
   if ( ! $user || ! in_array( 'lms_admin', (array) $user->roles, true ) ) {
     return $allcaps;
@@ -5827,25 +5835,7 @@ add_filter( 'user_has_cap', function ( $allcaps, $caps, $args, $user ) {
   return $allcaps;
 }, 10, 4 );
 
-/**
- * Étape 2 — wdm_is_instructor() : lms_admin reconnu comme instructeur.
- * Nécessaire pour que le contenu des pages de l'espace instructeur se charge.
- */
-add_filter( 'wdm_check_instructor', function ( $is_instructor ) {
-  if ( ! $is_instructor ) {
-    $user = wp_get_current_user();
-    if ( $user && in_array( 'lms_admin', (array) $user->roles, true ) ) {
-      return true;
-    }
-  }
-  return $is_instructor;
-} );
-
-/**
- * Étape 3 — Prévention redirect : désactive "disable backend dashboard" pour lms_admin.
- * Le plugin redirige les instructeurs non-'administrator' vers l'accueil si ce paramètre
- * est actif. lms_admin a manage_options mais pas administrator → serait redirigé sans ça.
- */
+// Empêche le redirect "disable backend dashboard" pour lms_admin.
 add_filter( 'ir_filter_get_settings', function ( $value, $key ) {
   if ( 'ir_disable_backend_dashboard' === $key ) {
     $user = wp_get_current_user();
@@ -5855,40 +5845,4 @@ add_filter( 'ir_filter_get_settings', function ( $value, $key ) {
   }
   return $value;
 }, 10, 2 );
-
-/**
- * Étape 4 — Liste de cours : lms_admin voit TOUS les parcours dans l'espace instructeur.
- * Définie ici (mu-plugin) avant le plugin, elle prend la priorité via if(!function_exists).
- * Pour lms_admin → tous les cours. Pour les autres instructeurs → comportement d'origine.
- */
-if ( ! function_exists( 'ir_get_instructor_complete_course_list' ) ) {
-  function ir_get_instructor_complete_course_list( $user_id = 0, $is_builder = false, $fetch_trashed = false ) {
-    if ( empty( $user_id ) ) {
-      $user_id = get_current_user_id();
-    }
-    $user_info = get_userdata( $user_id );
-    if ( $user_info && in_array( 'lms_admin', (array) $user_info->roles, true ) ) {
-      $args = [
-        'post_type'   => 'sfwd-courses',
-        'fields'      => 'ids',
-        'numberposts' => -1,
-      ];
-      if ( $is_builder ) {
-        $args['post_status'] = [ 'publish', 'draft', 'private', 'future' ];
-      }
-      if ( $fetch_trashed ) {
-        $args['post_status'][] = 'trash';
-      }
-      return get_posts( $args );
-    }
-    // Comportement original pour les wdm_instructor.
-    if ( function_exists( 'ir_get_instructor_owned_course_list' ) && function_exists( 'ir_get_instructor_shared_course_list' ) ) {
-      return array_merge(
-        ir_get_instructor_owned_course_list( $user_id, $is_builder, $fetch_trashed ),
-        ir_get_instructor_shared_course_list( $user_id )
-      );
-    }
-    return [];
-  }
-}
 
