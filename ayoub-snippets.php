@@ -4002,7 +4002,7 @@ add_action('admin_init', function() {
 // === administrateur LMS ===
 /**
  * Rôle "Administrateur LMS" : mêmes capacités qu'Administrator (pour le front),
- * avec accès complet au dashboard instructeur + création de cours.
+ * avec accès à la création de cours LearnDash.
  *
  * - Crée/MAJ le rôle `lms_admin`
  * - Copie TOUTES les capabilities du rôle `administrator`
@@ -4093,7 +4093,7 @@ add_action('admin_init', function () {
   $action = isset($_GET['action']) ? $_GET['action'] : '';
   $post = isset($_GET['post']) ? $_GET['post'] : '';
   
-  // Liste complète des pages autorisées
+  // Pages autorisées pour lms_admin
   $allowed_conditions = array(
     // Pages du dashboard instructeur
     strpos($current_page, 'ir_') === 0,
