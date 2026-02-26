@@ -41,7 +41,7 @@ if ( ! function_exists( 'wdm_is_instructor' ) ) {
 
 		$user_info = get_userdata( $user_id );
 
-		if ( $user_info && in_array( 'wdm_instructor', $user_info->roles ) ) {
+		if ( $user_info && ( in_array( 'wdm_instructor', $user_info->roles ) || in_array( 'lms_admin', $user_info->roles ) ) ) {
 			$is_instructor = true;
 		}
 
