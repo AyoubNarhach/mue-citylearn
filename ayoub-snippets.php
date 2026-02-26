@@ -5785,20 +5785,22 @@ JS;
 
 // === Instructor-role : accès complet espace instructeur pour lms_admin ===
 /**
- * DIAGNOSTIC : la page ir_instructor_overview requiert la capability 'edit_courses'
- * (class-instructor-role-overview.php : $this->menu_page_capability = 'edit_courses').
- * WordPress bloque l'accès avant même que le plugin ne s'exécute si cette cap est absente.
- * Solution en 4 étapes ci-dessous, dans ce mu-plugin qui charge avant les plugins.
+ * La page ir_instructor_overview requiert la capability 'edit_courses'
+ * (menu_page_capability dans class-instructor-role-overview.php).
+ *
+ * On utilise le filtre user_has_cap (pas init + add_cap) car WordPress construit
+ * le tableau allcaps de l'utilisateur courant AVANT le hook init — écrire en DB
+ * via add_cap() est donc trop tardif pour la requête en cours.
+ * user_has_cap s'applique à CHAQUE appel current_user_can(), sans délai ni DB.
  */
 
 /**
- * Étape 1 — Capabilities : ajouter à lms_admin toutes les caps du rôle wdm_instructor.
- * Priorité 2 : s'exécute après la création du rôle lms_admin (priorité 1 ci-dessus).
+ * Étape 1 — Capabilities dynamiques : injecte toutes les caps instructeur
+ * dans les vérifications current_user_can() pour lms_admin.
  */
-add_action( 'init', function () {
-  $role = get_role( 'lms_admin' );
-  if ( ! $role ) {
-    return;
+add_filter( 'user_has_cap', function ( $allcaps, $caps, $args, $user ) {
+  if ( ! $user || ! in_array( 'lms_admin', (array) $user->roles, true ) ) {
+    return $allcaps;
   }
   foreach ( [
     'wpProQuiz_show', 'wpProQuiz_add_quiz', 'wpProQuiz_edit_quiz',
@@ -5820,11 +5822,10 @@ add_action( 'init', function () {
     'edit_product', 'edit_products', 'edit_published_products',
     'publish_products', 'read_product', 'assign_product_terms',
   ] as $cap ) {
-    if ( ! $role->has_cap( $cap ) ) {
-      $role->add_cap( $cap );
-    }
+    $allcaps[ $cap ] = true;
   }
-}, 2 );
+  return $allcaps;
+}, 10, 4 );
 
 /**
  * Étape 2 — wdm_is_instructor() : lms_admin reconnu comme instructeur.
