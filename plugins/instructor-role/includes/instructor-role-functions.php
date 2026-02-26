@@ -952,6 +952,23 @@ if ( ! function_exists( 'ir_get_instructor_complete_course_list' ) ) {
 			$user_id = get_current_user_id();
 		}
 
+		// lms_admin has access to all courses without ownership restrictions.
+		$user_info = get_userdata( $user_id );
+		if ( $user_info && in_array( 'lms_admin', $user_info->roles ) ) {
+			$args = [
+				'post_type'   => 'sfwd-courses',
+				'fields'      => 'ids',
+				'numberposts' => -1,
+			];
+			if ( $is_builder ) {
+				$args['post_status'] = [ 'publish', 'draft', 'private', 'future' ];
+			}
+			if ( $fetch_trashed ) {
+				$args['post_status'][] = 'trash';
+			}
+			return get_posts( $args );
+		}
+
 		$owned_courses  = ir_get_instructor_owned_course_list( $user_id, $is_builder, $fetch_trashed );
 		$shared_courses = ir_get_instructor_shared_course_list( $user_id );
 

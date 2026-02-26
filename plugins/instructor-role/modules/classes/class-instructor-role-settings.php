@@ -3506,7 +3506,7 @@ if ( ! class_exists( 'Instructor_Role_Settings' ) ) {
 			 * @param string $url   Redirect URL, defaults to site home url.
 			 */
 			$url = apply_filters( 'ir_filter_dashboard_restrict_redirect', $url );
-			if ( is_admin() && ! current_user_can( 'administrator' ) && ! ( defined( 'DOING_AJAX' ) && DOING_AJAX ) && ! $this->check_if_elementor_page() ) {
+			if ( is_admin() && ! current_user_can( 'administrator' ) && ! current_user_can( 'manage_options' ) && ! ( defined( 'DOING_AJAX' ) && DOING_AJAX ) && ! $this->check_if_elementor_page() ) {
 				wp_redirect( $url );
 				exit;
 			}
