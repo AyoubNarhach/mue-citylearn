@@ -5782,3 +5782,76 @@ JS;
   return $html;
 });
 
+
+// === Instructor-role : lms_admin accès complet espace instructeur ===
+/**
+ * Chargé en mu-plugin AVANT le plugin instructor-role, ce bloc intercepte
+ * les trois fonctions/filtres clés pour que lms_admin (et tous les wdm_instructor)
+ * aient un accès complet sans aucune restriction de propriété de cours.
+ *
+ * 1. wdm_is_instructor()                    — lms_admin reconnu comme instructeur
+ * 2. ir_get_instructor_complete_course_list() — tous les cours pour tous les instructeurs
+ * 3. ir_filter_get_settings                  — désactive le redirect backend pour lms_admin
+ */
+
+/**
+ * Définit wdm_is_instructor() avant le plugin (garde if !function_exists).
+ * Retourne true pour wdm_instructor ET lms_admin.
+ */
+if ( ! function_exists( 'wdm_is_instructor' ) ) {
+  function wdm_is_instructor( $user_id = 0 ) {
+    if ( empty( $user_id ) ) {
+      $user_id = get_current_user_id();
+    }
+    if ( ! function_exists( 'get_userdata' ) ) {
+      return false;
+    }
+    $user_info     = get_userdata( $user_id );
+    $is_instructor = $user_info && (
+      in_array( 'wdm_instructor', (array) $user_info->roles, true ) ||
+      in_array( 'lms_admin',      (array) $user_info->roles, true )
+    );
+    return apply_filters( 'wdm_check_instructor', $is_instructor );
+  }
+}
+
+/**
+ * Définit ir_get_instructor_complete_course_list() avant le plugin.
+ * Retourne TOUS les cours sfwd-courses pour n'importe quel instructeur
+ * (wdm_instructor ou lms_admin), sans restriction de propriété ni de partage.
+ */
+if ( ! function_exists( 'ir_get_instructor_complete_course_list' ) ) {
+  function ir_get_instructor_complete_course_list( $user_id = 0, $is_builder = false, $fetch_trashed = false ) {
+    if ( empty( $user_id ) ) {
+      $user_id = get_current_user_id();
+    }
+    $args = [
+      'post_type'   => 'sfwd-courses',
+      'fields'      => 'ids',
+      'numberposts' => -1,
+    ];
+    if ( $is_builder ) {
+      $args['post_status'] = [ 'publish', 'draft', 'private', 'future' ];
+    }
+    if ( $fetch_trashed ) {
+      $args['post_status'][] = 'trash';
+    }
+    return get_posts( $args );
+  }
+}
+
+/**
+ * Pour lms_admin : neutralise le paramètre "disable backend dashboard"
+ * du plugin instructor-role, ce qui empêche la redirection vers l'accueil
+ * quand lms_admin accède à l'espace wp-admin.
+ */
+add_filter( 'ir_filter_get_settings', function ( $value, $key ) {
+  if ( 'ir_disable_backend_dashboard' === $key ) {
+    $user = wp_get_current_user();
+    if ( $user && in_array( 'lms_admin', (array) $user->roles, true ) ) {
+      return false;
+    }
+  }
+  return $value;
+}, 10, 2 );
+
