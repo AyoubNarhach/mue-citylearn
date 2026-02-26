@@ -90,6 +90,12 @@ if ( ! class_exists( 'Instructor_Role_Admin' ) ) {
 				$wdm_user_id = get_current_user_id();
 
 				if ( wdm_is_instructor( $wdm_user_id ) ) {
+					// lms_admin voit tout le contenu, pas de restriction par auteur.
+					$wdm_user_info = get_userdata( $wdm_user_id );
+					if ( $wdm_user_info && in_array( 'lms_admin', (array) $wdm_user_info->roles, true ) ) {
+						return $query;
+					}
+
 					$wdmir_exclude_posts = [
 						'sfwd-assignment',
 						'achievement-type',
