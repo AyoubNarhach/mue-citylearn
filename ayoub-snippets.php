@@ -6174,7 +6174,17 @@ add_filter( 'ir_filter_get_settings', function ( $value, $key ) {
  *  1. En-têtes de tableau statiques (pas de floating/sticky)
  *  2. Nom de profil utilisateur non cliquable
  *  3. Texte du donut "Parcours Status" réduit
+ *  4. Suppression série "Tin Can Statements" du graphe Recent Activities
  * ========================================================= */
+
+/* ── 4a. PHP : vider courses_tincan_completed côté serveur ──────────────── */
+/* Le filtre s'applique avant le cache ; la série amCharts n'aura plus de    */
+/* données et sera disposée définitivement côté client (JS ci-dessous).      */
+add_filter( 'uo_get_dashboard_data', function ( $dashboard ) {
+  $dashboard['courses_tincan_completed'] = array();
+  return $dashboard;
+} );
+
 add_action( 'wp_head', function () {
   global $post;
   if ( ! $post ) return;
@@ -6212,9 +6222,8 @@ add_action( 'wp_head', function () {
   </style>
   <script id="tincanny-custom-scripts">
   (function () {
+
     /* ── 3b. Réduction taille texte via MutationObserver ─────────────────── */
-    /* amCharts peut appliquer font-size comme attribut SVG inline ;           */
-    /* le MutationObserver le réduit dès que les nœuds SVG sont insérés.      */
     function applySmallText(root) {
       if (!root || !root.querySelectorAll) return;
       root.querySelectorAll('text').forEach(function (el) {
@@ -6223,17 +6232,63 @@ add_action( 'wp_head', function () {
       });
     }
     document.addEventListener('DOMContentLoaded', function () {
-      var container = document.getElementById('courseSingleOverviewPieChart');
-      if (!container || !window.MutationObserver) return;
-      applySmallText(container);
-      new MutationObserver(function (mutations) {
-        mutations.forEach(function (m) {
-          m.addedNodes.forEach(function (n) {
-            if (n.nodeType === 1) applySmallText(n);
+      var pieContainer = document.getElementById('courseSingleOverviewPieChart');
+      if (pieContainer && window.MutationObserver) {
+        applySmallText(pieContainer);
+        new MutationObserver(function (mutations) {
+          mutations.forEach(function (m) {
+            m.addedNodes.forEach(function (n) { if (n.nodeType === 1) applySmallText(n); });
+          });
+        }).observe(pieContainer, { childList: true, subtree: true });
+      }
+    });
+
+    /* ── 4b. JS : supprimer définitivement la série "Tin Can Statements" ─── */
+    /* Le graphe #coursesOverviewGraph (Recent Activities) est rendu par       */
+    /* amCharts 5 de façon asynchrone (après appel REST). On attend le SVG    */
+    /* puis on dispose() la série pour l'effacer chart + légende.             */
+    (function () {
+      var TC_RE = /tin\s*can|statement/i;
+
+      function disposeTcSeries() {
+        if (typeof am5 === 'undefined' || !am5.registry || !am5.registry.rootElements) return false;
+        var done = false;
+        am5.registry.rootElements.forEach(function (root) {
+          if (!root || !root.dom || root.dom.id !== 'coursesOverviewGraph') return;
+          root.container.children.each(function (chart) {
+            if (!chart.series) return;
+            var toDispose = [];
+            chart.series.each(function (series) {
+              if (TC_RE.test(series.get ? (series.get('name') || '') : '')) toDispose.push(series);
+            });
+            toDispose.forEach(function (s) { try { s.dispose(); } catch (e) {} done = true; });
           });
         });
-      }).observe(container, { childList: true, subtree: true });
-    });
+        return done;
+      }
+
+      document.addEventListener('DOMContentLoaded', function () {
+        var el = document.getElementById('coursesOverviewGraph');
+        if (!el || !window.MutationObserver) return;
+
+        /* Dès que amCharts insère le <svg>, on tente le dispose.             */
+        /* Si la série n'est pas encore prête, on repoll toutes les 400 ms.  */
+        var pollTimer, pollCount = 0;
+        function startPoll() {
+          pollTimer = setInterval(function () {
+            if (disposeTcSeries() || ++pollCount > 75) clearInterval(pollTimer);
+          }, 400);
+        }
+
+        new MutationObserver(function (mutations, obs) {
+          if (el.querySelector('svg')) {
+            obs.disconnect();
+            setTimeout(function () { if (!disposeTcSeries()) startPoll(); }, 300);
+          }
+        }).observe(el, { childList: true, subtree: true });
+      });
+    })();
+
   })();
   </script>
   <?php
