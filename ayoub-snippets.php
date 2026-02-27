@@ -574,104 +574,274 @@ if (!defined('LDUA_BOOTSTRAP')) {
   }
 
   /* =========================================================
-   *  AJAX: template CSV
+   *  Helper : génère un fichier XLSX Import E-citylearn
+   * ========================================================= */
+  if (!function_exists('ldua_build_xlsx')) :
+  function ldua_build_xlsx(array $roles, array $groups, array $courses): string {
+    $xe = fn(string $v): string => htmlspecialchars($v, ENT_XML1 | ENT_QUOTES, 'UTF-8');
+
+    // Convertit un index de colonne 0-basé en lettre(s) Excel (A, B, … Z, AA …)
+    $col_letter = function (int $i): string {
+      $l = '';
+      do {
+        $l = chr(65 + ($i % 26)) . $l;
+        $i = intdiv($i, 26) - 1;
+      } while ($i >= 0);
+      return $l;
+    };
+
+    // Table de chaînes partagées
+    $ss_list = [];
+    $ss_idx  = [];
+    $si = function (string $v) use (&$ss_list, &$ss_idx): int {
+      if (!isset($ss_idx[$v])) {
+        $ss_idx[$v] = count($ss_list);
+        $ss_list[]  = $v;
+      }
+      return $ss_idx[$v];
+    };
+
+    // Cellule texte (shared string)
+    $scell = function (int $col, int $row, string $val, int $style = 0) use ($col_letter, $si): string {
+      return '<c r="' . $col_letter($col) . $row . '" t="s" s="' . $style . '"><v>' . $si($val) . '</v></c>';
+    };
+
+    // --- Pré-enregistrement de toutes les chaînes ---
+    $headers = ['Email', 'Prénom', 'Nom', 'Identifiant', 'Mot de passe', 'Rôle', 'Groupe(s)', 'Parcours', 'Date début', 'Date suspension'];
+    foreach ($headers as $h) $si($h);
+
+    $ex_g = count($groups)  ? $groups[0]  : '';
+    $ex_c = count($courses) ? $courses[0] : '';
+    $example = ['exemple@domaine.com', 'Prénom', 'Nom', '', '', 'Apprenant', $ex_g, $ex_c, '2026-01-15', ''];
+    foreach ($example as $v) $si((string)$v);
+
+    foreach ($roles   as $r) $si($r);
+    foreach ($groups  as $g) $si($g);
+    foreach ($courses as $c) $si($c);
+
+    // --- sharedStrings.xml ---
+    $ssx = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' . "\n";
+    $ssx .= '<sst xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" count="' . count($ss_list) . '" uniqueCount="' . count($ss_list) . '">';
+    foreach ($ss_list as $s) $ssx .= '<si><t xml:space="preserve">' . $xe($s) . '</t></si>';
+    $ssx .= '</sst>';
+
+    // =========================================================
+    // Sheet 1 : Import (feuille principale)
+    // =========================================================
+    $s1  = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>';
+    $s1 .= '<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">';
+    // Figer la première ligne
+    $s1 .= '<sheetViews><sheetView tabSelected="1" workbookViewId="0">';
+    $s1 .= '<pane ySplit="1" topLeftCell="A2" activePane="bottomLeft" state="frozen"/>';
+    $s1 .= '</sheetView></sheetViews>';
+    // Largeurs colonnes
+    $widths = [30, 15, 15, 20, 20, 22, 45, 45, 14, 18];
+    $s1 .= '<cols>';
+    foreach ($widths as $ci => $w) {
+      $cn = $ci + 1;
+      $s1 .= '<col min="' . $cn . '" max="' . $cn . '" width="' . $w . '" bestFit="1" customWidth="1"/>';
+    }
+    $s1 .= '</cols>';
+    $s1 .= '<sheetData>';
+    // Ligne 1 : en-têtes (style 1 = fond bleu + texte blanc gras)
+    $s1 .= '<row r="1" ht="22" customHeight="1">';
+    foreach ($headers as $ci => $h) $s1 .= $scell($ci, 1, $h, 1);
+    $s1 .= '</row>';
+    // Ligne 2 : exemple (style 2 = fond jaune clair)
+    $s1 .= '<row r="2">';
+    foreach ($example as $ci => $v) $s1 .= $scell($ci, 2, (string)$v, 2);
+    $s1 .= '</row>';
+    $s1 .= '</sheetData>';
+    // Validation des données (listes déroulantes)
+    $nr = max(1, count($roles));
+    $ng = count($groups);
+    $nc = count($courses);
+    $dv = 1 + ($ng > 0 ? 1 : 0) + ($nc > 0 ? 1 : 0);
+    $s1 .= '<dataValidations count="' . $dv . '">';
+    $s1 .= '<dataValidation type="list" sqref="F2:F10000" allowBlank="1" showDropDown="0"><formula1>Listes!$A$1:$A$' . $nr . '</formula1></dataValidation>';
+    if ($ng > 0) $s1 .= '<dataValidation type="list" sqref="G2:G10000" allowBlank="1" showDropDown="0"><formula1>Listes!$B$1:$B$' . $ng . '</formula1></dataValidation>';
+    if ($nc > 0) $s1 .= '<dataValidation type="list" sqref="H2:H10000" allowBlank="1" showDropDown="0"><formula1>Listes!$C$1:$C$' . $nc . '</formula1></dataValidation>';
+    $s1 .= '</dataValidations>';
+    $s1 .= '</worksheet>';
+
+    // =========================================================
+    // Sheet 2 : Listes (cachée — données des listes déroulantes)
+    // =========================================================
+    $s2  = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>';
+    $s2 .= '<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">';
+    $s2 .= '<cols>';
+    $s2 .= '<col min="1" max="1" width="20" customWidth="1"/>';
+    $s2 .= '<col min="2" max="2" width="55" customWidth="1"/>';
+    $s2 .= '<col min="3" max="3" width="55" customWidth="1"/>';
+    $s2 .= '</cols>';
+    $s2 .= '<sheetData>';
+    $max_r = max(count($roles), count($groups), count($courses), 1);
+    for ($r = 0; $r < $max_r; $r++) {
+      $s2 .= '<row r="' . ($r + 1) . '">';
+      if (isset($roles[$r]))   $s2 .= $scell(0, $r + 1, $roles[$r]);
+      if (isset($groups[$r]))  $s2 .= $scell(1, $r + 1, $groups[$r]);
+      if (isset($courses[$r])) $s2 .= $scell(2, $r + 1, $courses[$r]);
+      $s2 .= '</row>';
+    }
+    $s2 .= '</sheetData></worksheet>';
+
+    // =========================================================
+    // styles.xml
+    // =========================================================
+    $styles  = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>';
+    $styles .= '<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">';
+    $styles .= '<fonts count="2">';
+    $styles .= '<font><sz val="11"/><name val="Calibri"/></font>';
+    $styles .= '<font><b/><sz val="11"/><color rgb="FFFFFFFF"/><name val="Calibri"/></font>';
+    $styles .= '</fonts>';
+    $styles .= '<fills count="4">';
+    $styles .= '<fill><patternFill patternType="none"/></fill>';
+    $styles .= '<fill><patternFill patternType="gray125"/></fill>';
+    $styles .= '<fill><patternFill patternType="solid"><fgColor rgb="FF2E75B6"/><bgColor indexed="64"/></patternFill></fill>';
+    $styles .= '<fill><patternFill patternType="solid"><fgColor rgb="FFFFF2CC"/><bgColor indexed="64"/></patternFill></fill>';
+    $styles .= '</fills>';
+    $styles .= '<borders count="1"><border><left/><right/><top/><bottom/><diagonal/></border></borders>';
+    $styles .= '<cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>';
+    $styles .= '<cellXfs>';
+    $styles .= '<xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/>';
+    $styles .= '<xf numFmtId="0" fontId="1" fillId="2" borderId="0" xfId="0" applyFont="1" applyFill="1"><alignment horizontal="center" vertical="center"/></xf>';
+    $styles .= '<xf numFmtId="0" fontId="0" fillId="3" borderId="0" xfId="0" applyFill="1"/>';
+    $styles .= '</cellXfs>';
+    $styles .= '<cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles>';
+    $styles .= '</styleSheet>';
+
+    // =========================================================
+    // Packaging ZIP → XLSX
+    // =========================================================
+    $tmp = tempnam(sys_get_temp_dir(), 'ldua_xlsx_');
+    $zip = new ZipArchive();
+    $zip->open($tmp, ZipArchive::CREATE | ZipArchive::OVERWRITE);
+
+    $zip->addFromString('[Content_Types].xml',
+      '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' .
+      '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">' .
+      '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>' .
+      '<Default Extension="xml" ContentType="application/xml"/>' .
+      '<Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>' .
+      '<Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>' .
+      '<Override PartName="/xl/worksheets/sheet2.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>' .
+      '<Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>' .
+      '<Override PartName="/xl/sharedStrings.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sharedStrings+xml"/>' .
+      '</Types>'
+    );
+    $zip->addFromString('_rels/.rels',
+      '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' .
+      '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">' .
+      '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/>' .
+      '</Relationships>'
+    );
+    $zip->addFromString('xl/workbook.xml',
+      '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' .
+      '<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">' .
+      '<sheets>' .
+      '<sheet name="Import" sheetId="1" r:id="rId1"/>' .
+      '<sheet name="Listes" sheetId="2" r:id="rId2" state="hidden"/>' .
+      '</sheets>' .
+      '</workbook>'
+    );
+    $zip->addFromString('xl/_rels/workbook.xml.rels',
+      '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' .
+      '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">' .
+      '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/>' .
+      '<Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet2.xml"/>' .
+      '<Relationship Id="rId3" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>' .
+      '<Relationship Id="rId4" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/sharedStrings" Target="sharedStrings.xml"/>' .
+      '</Relationships>'
+    );
+    $zip->addFromString('xl/styles.xml', $styles);
+    $zip->addFromString('xl/sharedStrings.xml', $ssx);
+    $zip->addFromString('xl/worksheets/sheet1.xml', $s1);
+    $zip->addFromString('xl/worksheets/sheet2.xml', $s2);
+    $zip->close();
+
+    $content = file_get_contents($tmp);
+    unlink($tmp);
+    return $content;
+  }
+  endif;
+
+  /* =========================================================
+   *  Helper : lit un fichier XLSX → tableau de lignes (array[])
+   * ========================================================= */
+  if (!function_exists('ldua_parse_xlsx_rows')) :
+  function ldua_parse_xlsx_rows(string $tmp_path): array {
+    $zip = new ZipArchive();
+    if ($zip->open($tmp_path) !== true) return [];
+
+    // Chaînes partagées
+    $ss = [];
+    $ss_xml = $zip->getFromName('xl/sharedStrings.xml');
+    if ($ss_xml) {
+      $dom = new DOMDocument();
+      @$dom->loadXML($ss_xml);
+      foreach ($dom->getElementsByTagName('si') as $si_node) {
+        $t = '';
+        foreach ($si_node->getElementsByTagName('t') as $tn) $t .= $tn->textContent;
+        $ss[] = $t;
+      }
+    }
+
+    $sheet_xml = $zip->getFromName('xl/worksheets/sheet1.xml');
+    $zip->close();
+    if (!$sheet_xml) return [];
+
+    $dom = new DOMDocument();
+    @$dom->loadXML($sheet_xml);
+
+    $rows = [];
+    foreach ($dom->getElementsByTagName('row') as $row_node) {
+      $row_data = [];
+      foreach ($row_node->getElementsByTagName('c') as $cell) {
+        $ref  = $cell->getAttribute('r');
+        $type = $cell->getAttribute('t');
+        $v_node = $cell->getElementsByTagName('v')->item(0);
+        $val  = $v_node ? trim($v_node->textContent) : '';
+        if ($type === 's' && isset($ss[(int)$val])) $val = $ss[(int)$val];
+
+        preg_match('/^([A-Z]+)/i', $ref, $m);
+        $col_str = strtoupper($m[1] ?? 'A');
+        $col_idx = 0;
+        for ($ci = 0; $ci < strlen($col_str); $ci++) $col_idx = $col_idx * 26 + (ord($col_str[$ci]) - 64);
+        $row_data[$col_idx - 1] = trim($val);
+      }
+      if (!empty($row_data)) {
+        $max_col = max(array_keys($row_data));
+        $full = [];
+        for ($ci = 0; $ci <= $max_col; $ci++) $full[] = $row_data[$ci] ?? '';
+        $rows[] = $full;
+      }
+    }
+    return $rows;
+  }
+  endif;
+
+  /* =========================================================
+   *  AJAX: template Excel (Import_E-citylearn.xlsx)
    * ========================================================= */
   add_action('wp_ajax_ldua_template_download', function () {
     $nonce = $_GET['ldua_template_nonce'] ?? '';
     if (!wp_verify_nonce($nonce, 'ldua_template_download')) wp_die('Nonce invalide.');
-
     if (!ldua_can_manage()) wp_die('Accès refusé.');
 
-    $filename = 'Import_E-citylearn.csv';
-    header('Content-Type: text/csv; charset=UTF-8');
-    header('Content-Disposition: attachment; filename="' . $filename . '"');
+    $lms_groups  = get_posts(['post_type' => 'groups',        'posts_per_page' => -1, 'orderby' => 'title', 'order' => 'ASC', 'post_status' => 'publish']);
+    $lms_courses = get_posts(['post_type' => 'sfwd-courses',  'posts_per_page' => -1, 'orderby' => 'title', 'order' => 'ASC', 'post_status' => 'publish']);
 
-    // BOM UTF-8 pour Excel
-    echo "\xEF\xBB\xBF";
+    $roles   = ['Apprenant', 'Manager', 'Administrateur LMS'];
+    $groups  = array_map(fn($g) => $g->ID . ' | ' . get_the_title($g->ID), $lms_groups);
+    $courses = array_map(fn($c) => $c->ID . ' | ' . get_the_title($c->ID), $lms_courses);
 
-    // -------------------------------------------------------
-    // En-tête et instructions
-    // -------------------------------------------------------
-    echo "# ============================================================\n";
-    echo "# MODELE IMPORT E-CITYLEARN\n";
-    echo "# ============================================================\n";
-    echo "# Separateur : point-virgule (;)   |   Encodage : UTF-8\n";
-    echo "#\n";
-    echo "# COLONNES :\n";
-    echo "#   email           : Adresse email (obligatoire)\n";
-    echo "#   prenom          : Prenom\n";
-    echo "#   nom             : Nom de famille\n";
-    echo "#   identifiant     : Identifiant de connexion (genere automatiquement si vide)\n";
-    echo "#   mot_de_passe    : Mot de passe (genere automatiquement si vide)\n";
-    echo "#   role            : subscriber | group_leader | lms_admin  (defaut : subscriber)\n";
-    echo "#   groupes         : ID(s) du ou des groupes  - separateur entre plusieurs IDs : |\n";
-    echo "#   parcours        : ID(s) du ou des parcours - separateur entre plusieurs IDs : |\n";
-    echo "#   date_debut      : Date d'activation   (format : AAAA-MM-JJ, ex : 2026-01-15)\n";
-    echo "#   date_suspension : Date de suspension  (format : AAAA-MM-JJ, laisser vide si aucune)\n";
-    echo "#\n";
+    $xlsx = ldua_build_xlsx($roles, $groups, $courses);
 
-    // -------------------------------------------------------
-    // Liste des groupes disponibles dans le LMS
-    // -------------------------------------------------------
-    $lms_groups = get_posts([
-      'post_type'      => 'groups',
-      'posts_per_page' => -1,
-      'orderby'        => 'title',
-      'order'          => 'ASC',
-      'post_status'    => 'publish',
-    ]);
-    echo "# ------------------------------------------------------------\n";
-    echo "# GROUPES DISPONIBLES (utiliser l'ID dans la colonne \"groupes\")\n";
-    echo "# ------------------------------------------------------------\n";
-    echo "# ID       ; Nom du groupe\n";
-    if ($lms_groups) {
-      foreach ($lms_groups as $g) {
-        $gid   = (int) $g->ID;
-        $gtitle = str_replace(["\r", "\n", ';'], ['', '', ','], get_the_title($g->ID));
-        echo "# " . str_pad($gid, 8) . "; " . $gtitle . "\n";
-      }
-    } else {
-      echo "# (aucun groupe trouve dans le LMS)\n";
-    }
-    echo "#\n";
-
-    // -------------------------------------------------------
-    // Liste des parcours disponibles dans le LMS
-    // -------------------------------------------------------
-    $lms_courses = get_posts([
-      'post_type'      => 'sfwd-courses',
-      'posts_per_page' => -1,
-      'orderby'        => 'title',
-      'order'          => 'ASC',
-      'post_status'    => 'publish',
-    ]);
-    echo "# ------------------------------------------------------------\n";
-    echo "# PARCOURS DISPONIBLES (utiliser l'ID dans la colonne \"parcours\")\n";
-    echo "# ------------------------------------------------------------\n";
-    echo "# ID       ; Nom du parcours\n";
-    if ($lms_courses) {
-      foreach ($lms_courses as $c) {
-        $cid    = (int) $c->ID;
-        $ctitle = str_replace(["\r", "\n", ';'], ['', '', ','], get_the_title($c->ID));
-        echo "# " . str_pad($cid, 8) . "; " . $ctitle . "\n";
-      }
-    } else {
-      echo "# (aucun parcours trouve dans le LMS)\n";
-    }
-    echo "#\n";
-
-    // -------------------------------------------------------
-    // Ligne d'en-tete + exemple
-    // -------------------------------------------------------
-    echo "# ============================================================\n";
-    echo "# EXEMPLE (supprimer cette ligne avant import)\n";
-    echo "# ============================================================\n";
-    echo "email;prenom;nom;identifiant;mot_de_passe;role;groupes;parcours;date_debut;date_suspension\n";
-    $ex_group   = $lms_groups  ? (int) $lms_groups[0]->ID  : '0';
-    $ex_course  = $lms_courses ? (int) $lms_courses[0]->ID : '0';
-    $ex_group2  = isset($lms_groups[1])  ? '|' . (int) $lms_groups[1]->ID  : '';
-    $ex_course2 = isset($lms_courses[1]) ? '|' . (int) $lms_courses[1]->ID : '';
-    echo "exemple@domaine.com;Prenom;Nom;;MotDePasse123;subscriber;" . $ex_group . $ex_group2 . ";" . $ex_course . $ex_course2 . ";2026-01-15;\n";
+    header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    header('Content-Disposition: attachment; filename="Import_E-citylearn.xlsx"');
+    header('Content-Length: ' . strlen($xlsx));
+    header('Cache-Control: max-age=0');
+    echo $xlsx;
     exit;
   });
 
@@ -1035,29 +1205,33 @@ wp_send_json_success(['user_id' => (int)$user_id]);
       wp_send_json_error(['message' => 'Fichier manquant.']);
     }
 
-    $tmp = $_FILES['excel_file']['tmp_name'];
-    $content = file_get_contents($tmp);
-    if ($content === false) wp_send_json_error(['message' => 'Lecture fichier impossible.']);
+    $tmp      = $_FILES['excel_file']['tmp_name'];
+    $file_ext = strtolower(pathinfo($_FILES['excel_file']['name'] ?? '', PATHINFO_EXTENSION));
 
-    // Normaliser encodage + lignes (ignorer les lignes vides et les commentaires # du template)
-    $content = preg_replace("/\r\n|\r/", "\n", $content);
-    $lines = array_values(array_filter(array_map('trim', explode("\n", $content)), fn($l) => $l !== '' && ($l[0] ?? '') !== '#'));
-    if (count($lines) < 2) wp_send_json_error(['message' => 'CSV vide.']);
+    // Normaliser en tableau de lignes (array[])
+    if ($file_ext === 'xlsx') {
+      $rows = ldua_parse_xlsx_rows($tmp);
+      if (count($rows) < 2) wp_send_json_error(['message' => 'Fichier XLSX vide ou format incorrect.']);
+    } else {
+      $content = file_get_contents($tmp);
+      if ($content === false) wp_send_json_error(['message' => 'Lecture fichier impossible.']);
+      $content = preg_replace("/\r\n|\r/", "\n", $content);
+      $lines = array_values(array_filter(array_map('trim', explode("\n", $content)), fn($l) => $l !== '' && ($l[0] ?? '') !== '#'));
+      if (count($lines) < 2) wp_send_json_error(['message' => 'CSV vide.']);
+      $sep = ';';
+      if (substr_count($lines[0], ';') < substr_count($lines[0], ',')) $sep = ',';
+      $parse_csv = function ($line) use ($sep) {
+        $row = str_getcsv($line, $sep);
+        return array_map(function ($v) {
+          $v = trim((string)$v);
+          $v = preg_replace('/^\xEF\xBB\xBF/', '', $v);
+          return $v;
+        }, $row);
+      };
+      $rows = array_map($parse_csv, $lines);
+    }
 
-    // Détecter séparateur
-    $sep = ';';
-    if (substr_count($lines[0], ';') < substr_count($lines[0], ',')) $sep = ',';
-
-    $parse = function ($line) use ($sep) {
-      $row = str_getcsv($line, $sep);
-      return array_map(function ($v) {
-        $v = trim((string)$v);
-        $v = preg_replace('/^\xEF\xBB\xBF/', '', $v); // BOM
-        return $v;
-      }, $row);
-    };
-
-    $headers = $parse($lines[0]);
+    $headers      = $rows[0];
     $headers_norm = array_map(fn($h) => ldua_norm($h), $headers);
 
     // mapping FR + compat EN
@@ -1098,20 +1272,37 @@ wp_send_json_success(['user_id' => (int)$user_id]);
     $course_by_norm_title = [];
     foreach ($courses as $c) $course_by_norm_title[ldua_norm(get_the_title($c->ID))] = (int)$c->ID;
 
+    // Alias noms de rôle affichés dans le template Excel → slug WordPress
+    $role_aliases = [
+      'apprenant'        => 'subscriber',
+      'manager'          => 'group_leader',
+      'administrateur lms' => 'lms_admin',
+      'administrateur'   => 'lms_admin',
+    ];
+
+    // Parse une cellule "groupes" ou "parcours" : chaque item séparé par virgule.
+    // Chaque item peut être : "42 | Nom", "42", ou "Nom du groupe".
     $parse_ids_or_titles = function ($cell, $title_map) {
       $cell = trim((string)$cell);
       if ($cell === '') return [];
-      $parts = preg_split('/\s*[|,]\s*/', $cell);
+      $parts = preg_split('/\s*,\s*/', $cell); // séparateur multiple = virgule
       $ids = [];
       foreach ($parts as $p) {
         $p = trim($p);
         if ($p === '') continue;
-        if (is_numeric($p)) {
-          $ids[] = (int)$p;
-        } else {
-          $k = ldua_norm($p);
-          if (isset($title_map[$k])) $ids[] = (int)$title_map[$k];
+        // Format "42 | Nom" → extraire l'ID
+        if (preg_match('/^(\d+)\s*\|/', $p, $m)) {
+          $ids[] = (int)$m[1];
+          continue;
         }
+        // ID pur
+        if (ctype_digit($p)) {
+          $ids[] = (int)$p;
+          continue;
+        }
+        // Recherche par titre normalisé
+        $k = ldua_norm($p);
+        if (isset($title_map[$k])) $ids[] = (int)$title_map[$k];
       }
       return array_values(array_unique(array_filter($ids)));
     };
@@ -1121,8 +1312,8 @@ wp_send_json_success(['user_id' => (int)$user_id]);
     $errors  = 0;
     $messages = [];
 
-    for ($i = 1; $i < count($lines); $i++) {
-      $row = $parse($lines[$i]);
+    for ($i = 1; $i < count($rows); $i++) {
+      $row = $rows[$i];
       $get = function ($key) use ($row, $idx) {
         $p = $idx[$key] ?? -1;
         return ($p >= 0 && isset($row[$p])) ? $row[$p] : '';
@@ -1135,9 +1326,11 @@ wp_send_json_success(['user_id' => (int)$user_id]);
         continue;
       }
 
-      $first = sanitize_text_field($get('prenom'));
-      $last  = sanitize_text_field($get('nom'));
-      $role  = sanitize_text_field($get('role') ?: 'subscriber');
+      $first    = sanitize_text_field($get('prenom'));
+      $last     = sanitize_text_field($get('nom'));
+      $role_raw = ldua_norm($get('role') ?: '');
+      // Accepter les noms affichés dans le template Excel (Apprenant, Manager, Administrateur LMS)
+      $role = $role_aliases[$role_raw] ?? sanitize_text_field($get('role') ?: 'subscriber');
       if (!in_array($role, ['subscriber', 'group_leader', 'lms_admin'], true)) $role = 'subscriber';
 
       $username = sanitize_user($get('identifiant'), true);
@@ -1864,17 +2057,17 @@ add_action('wp_ajax_ldua_bulk_status', function () {
 
       <hr style="margin:2rem 0">
 
-      <h3>📥 IMPORT CSV</h3>
-      <p>Format accepté : <strong>.csv</strong> (séparateur <strong>;</strong> recommandé). Colonnes :
-        <code>email;prenom;nom;identifiant;mot_de_passe;role;groupes;parcours;date_debut;date_suspension</code>.
+      <h3>📥 IMPORT</h3>
+      <p>Formats acceptés : <strong>.xlsx</strong> (recommandé) ou <strong>.csv</strong>.
+        Téléchargez le modèle ci-dessous : il contient des listes déroulantes pour le rôle, les groupes et les parcours.
       </p>
-      <p><a href="<?php echo esc_url($ep_tmpl_ajax); ?>" class="button">Télécharger Import E-citylearn</a></p>
+      <p><a href="<?php echo esc_url($ep_tmpl_ajax); ?>" class="button button-secondary">⬇ Télécharger Import E-citylearn (.xlsx)</a></p>
 
       <form class="ldua-import-form" method="post" enctype="multipart/form-data" action="<?php echo esc_url($ep_import); ?>" style="display:flex;gap:.6rem;align-items:center;flex-wrap:wrap;">
         <?php wp_nonce_field('ldua_import', 'ldua_import_nonce'); ?>
         <input type="hidden" name="ldua_redirect" value="<?php echo esc_url($self_url); ?>">
         <input type="hidden" name="ldua_import_ajax_nonce" value="<?php echo esc_attr($ajax_nonce_import); ?>">
-        <input type="file" name="excel_file" accept=".csv" required>
+        <input type="file" name="excel_file" accept=".xlsx,.csv" required>
         <button type="submit" class="button button-primary" style="padding:6px 12px;font-size:12.5px;border-radius:6px;">Importer</button>
         <span class="ldua-import-status" style="display:none;margin-left:.5rem;"></span>
       </form>
