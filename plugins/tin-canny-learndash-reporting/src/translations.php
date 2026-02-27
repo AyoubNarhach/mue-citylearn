@@ -128,8 +128,8 @@ class Translations {
 			'graphNoActivity'                             => __( 'No activity registered', 'uncanny-learndash-reporting' ),
 			'graphNoEnrolledUsers'                        => __( 'No enrolled users', 'uncanny-learndash-reporting' ),
 			/* translators: %s is the "Courses" label */
-			'graphCourseCompletions'                      => _x( '%s Completions', '%s is the "Course" label', 'uncanny-learndash-reporting' ),
-			'graphTinCanStatements'                       => __( 'Tin Can Statements', 'uncanny-learndash-reporting' ),
+			'graphCourseCompletions'                      => __( 'Completion de parcours', 'uncanny-learndash-reporting' ),
+			'graphTinCanStatements'                       => __( 'Completion de parcours', 'uncanny-learndash-reporting' ),
 			/* translators: %s is the number of completions */
 			'graphTooltipCompletions'                     => _x( '%s completion(s)', '%s is a number', 'uncanny-learndash-reporting' ),
 			/* translators: %s is the number of statements */

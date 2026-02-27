@@ -6168,3 +6168,74 @@ add_filter( 'ir_filter_get_settings', function ( $value, $key ) {
   return $value;
 }, 10, 2 );
 
+/* =========================================================
+ *  Tin Canny – Personnalisations frontend (shortcode [tincanny])
+ * =========================================================
+ *  1. En-têtes de tableau statiques (pas de floating/sticky)
+ *  2. Nom de profil utilisateur non cliquable
+ *  3. Texte du donut "Parcours Status" réduit
+ * ========================================================= */
+add_action( 'wp_head', function () {
+  global $post;
+  if ( ! $post ) return;
+
+  $tc_shortcodes = [ 'tincanny', 'tincanny_course_report', 'tincanny_user_report', 'tincanny_tin_can_report', 'tincanny_xapi_quiz_report' ];
+  $has_tc = false;
+  foreach ( $tc_shortcodes as $sc ) {
+    if ( has_shortcode( $post->post_content, $sc ) ) { $has_tc = true; break; }
+  }
+  if ( ! $has_tc ) return;
+  ?>
+  <style id="tincanny-custom-styles">
+    /* ── 1. Désactiver les en-têtes flottants des tableaux DataTables ────── */
+    /* DataTables FixedHeader clone des thead dans des tables avec ces classes */
+    table.fixedHeader-floating,
+    table.fixedHeader-locked {
+      display: none !important;
+      visibility: hidden !important;
+    }
+
+    /* ── 2. Nom du profil utilisateur non cliquable ───────────────────────── */
+    #singleUserProfileDisplayName a {
+      pointer-events: none !important;
+      cursor: default !important;
+      text-decoration: none !important;
+      color: inherit !important;
+    }
+
+    /* ── 3. Graphique "Parcours Status" — texte plus petit ───────────────── */
+    /* amCharts 5 génère du SVG ; on cible les éléments text/tspan */
+    #courseSingleOverviewPieChart svg text,
+    #courseSingleOverviewPieChart svg tspan {
+      font-size: 10px !important;
+    }
+  </style>
+  <script id="tincanny-custom-scripts">
+  (function () {
+    /* ── 3b. Réduction taille texte via MutationObserver ─────────────────── */
+    /* amCharts peut appliquer font-size comme attribut SVG inline ;           */
+    /* le MutationObserver le réduit dès que les nœuds SVG sont insérés.      */
+    function applySmallText(root) {
+      if (!root || !root.querySelectorAll) return;
+      root.querySelectorAll('text').forEach(function (el) {
+        el.setAttribute('font-size', '10');
+        el.style.fontSize = '10px';
+      });
+    }
+    document.addEventListener('DOMContentLoaded', function () {
+      var container = document.getElementById('courseSingleOverviewPieChart');
+      if (!container || !window.MutationObserver) return;
+      applySmallText(container);
+      new MutationObserver(function (mutations) {
+        mutations.forEach(function (m) {
+          m.addedNodes.forEach(function (n) {
+            if (n.nodeType === 1) applySmallText(n);
+          });
+        });
+      }).observe(container, { childList: true, subtree: true });
+    });
+  })();
+  </script>
+  <?php
+}, 100 );
+
