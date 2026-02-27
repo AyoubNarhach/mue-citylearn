@@ -582,13 +582,96 @@ if (!defined('LDUA_BOOTSTRAP')) {
 
     if (!ldua_can_manage()) wp_die('Accès refusé.');
 
-    $filename = 'ldua_modele_import.csv';
+    $filename = 'Import_E-citylearn.csv';
     header('Content-Type: text/csv; charset=UTF-8');
     header('Content-Disposition: attachment; filename="' . $filename . '"');
-    // BOM UTF-8 (Excel)
+
+    // BOM UTF-8 pour Excel
     echo "\xEF\xBB\xBF";
+
+    // -------------------------------------------------------
+    // En-tête et instructions
+    // -------------------------------------------------------
+    echo "# ============================================================\n";
+    echo "# MODELE IMPORT E-CITYLEARN\n";
+    echo "# ============================================================\n";
+    echo "# Separateur : point-virgule (;)   |   Encodage : UTF-8\n";
+    echo "#\n";
+    echo "# COLONNES :\n";
+    echo "#   email           : Adresse email (obligatoire)\n";
+    echo "#   prenom          : Prenom\n";
+    echo "#   nom             : Nom de famille\n";
+    echo "#   identifiant     : Identifiant de connexion (genere automatiquement si vide)\n";
+    echo "#   mot_de_passe    : Mot de passe (genere automatiquement si vide)\n";
+    echo "#   role            : subscriber | group_leader | lms_admin  (defaut : subscriber)\n";
+    echo "#   groupes         : ID(s) du ou des groupes  - separateur entre plusieurs IDs : |\n";
+    echo "#   parcours        : ID(s) du ou des parcours - separateur entre plusieurs IDs : |\n";
+    echo "#   date_debut      : Date d'activation   (format : AAAA-MM-JJ, ex : 2026-01-15)\n";
+    echo "#   date_suspension : Date de suspension  (format : AAAA-MM-JJ, laisser vide si aucune)\n";
+    echo "#\n";
+
+    // -------------------------------------------------------
+    // Liste des groupes disponibles dans le LMS
+    // -------------------------------------------------------
+    $lms_groups = get_posts([
+      'post_type'      => 'groups',
+      'posts_per_page' => -1,
+      'orderby'        => 'title',
+      'order'          => 'ASC',
+      'post_status'    => 'publish',
+    ]);
+    echo "# ------------------------------------------------------------\n";
+    echo "# GROUPES DISPONIBLES (utiliser l'ID dans la colonne \"groupes\")\n";
+    echo "# ------------------------------------------------------------\n";
+    echo "# ID       ; Nom du groupe\n";
+    if ($lms_groups) {
+      foreach ($lms_groups as $g) {
+        $gid   = (int) $g->ID;
+        $gtitle = str_replace(["\r", "\n", ';'], ['', '', ','], get_the_title($g->ID));
+        echo "# " . str_pad($gid, 8) . "; " . $gtitle . "\n";
+      }
+    } else {
+      echo "# (aucun groupe trouve dans le LMS)\n";
+    }
+    echo "#\n";
+
+    // -------------------------------------------------------
+    // Liste des parcours disponibles dans le LMS
+    // -------------------------------------------------------
+    $lms_courses = get_posts([
+      'post_type'      => 'sfwd-courses',
+      'posts_per_page' => -1,
+      'orderby'        => 'title',
+      'order'          => 'ASC',
+      'post_status'    => 'publish',
+    ]);
+    echo "# ------------------------------------------------------------\n";
+    echo "# PARCOURS DISPONIBLES (utiliser l'ID dans la colonne \"parcours\")\n";
+    echo "# ------------------------------------------------------------\n";
+    echo "# ID       ; Nom du parcours\n";
+    if ($lms_courses) {
+      foreach ($lms_courses as $c) {
+        $cid    = (int) $c->ID;
+        $ctitle = str_replace(["\r", "\n", ';'], ['', '', ','], get_the_title($c->ID));
+        echo "# " . str_pad($cid, 8) . "; " . $ctitle . "\n";
+      }
+    } else {
+      echo "# (aucun parcours trouve dans le LMS)\n";
+    }
+    echo "#\n";
+
+    // -------------------------------------------------------
+    // Ligne d'en-tete + exemple
+    // -------------------------------------------------------
+    echo "# ============================================================\n";
+    echo "# EXEMPLE (supprimer cette ligne avant import)\n";
+    echo "# ============================================================\n";
     echo "email;prenom;nom;identifiant;mot_de_passe;role;groupes;parcours;date_debut;date_suspension\n";
-    echo "exemple@domaine.com;Ali;Test;ali.test;MotDePasse123;subscriber;123|Groupe A;456|Parcours B;2026-01-15;\n";
+    $ex_group   = $lms_groups  ? (int) $lms_groups[0]->ID  : '0';
+    $ex_course  = $lms_courses ? (int) $lms_courses[0]->ID : '0';
+    $ex_group2  = isset($lms_groups[1])  ? '|' . (int) $lms_groups[1]->ID  : '';
+    $ex_course2 = isset($lms_courses[1]) ? '|' . (int) $lms_courses[1]->ID : '';
+    echo "exemple@domaine.com;Prenom;Nom;;MotDePasse123;subscriber;" . $ex_group . $ex_group2 . ";" . $ex_course . $ex_course2 . ";2026-01-15;\n";
     exit;
   });
 
@@ -657,12 +740,9 @@ if (!defined('LDUA_BOOTSTRAP')) {
     if ($date_susp !== '') update_user_meta($user_id, LDUA_META_SUSPENSION, $date_susp);
     else delete_user_meta($user_id, LDUA_META_SUSPENSION);
 
-    // Group + Course
-    $group_id  = absint($_POST['group_id'] ?? 0);
-    $course_id = absint($_POST['course_id'] ?? 0);
-
-    $groups = $group_id ? [$group_id] : [];
-    $courses = $course_id ? [$course_id] : [];
+    // Groupes + Parcours (multi-sélection)
+    $groups  = array_values(array_filter(array_map('absint', (array)($_POST['group_ids'] ?? []))));
+    $courses = array_values(array_filter(array_map('absint', (array)($_POST['course_ids'] ?? []))));
 
     if (!empty($groups)) {
       if ($role === 'group_leader') {
@@ -959,9 +1039,9 @@ wp_send_json_success(['user_id' => (int)$user_id]);
     $content = file_get_contents($tmp);
     if ($content === false) wp_send_json_error(['message' => 'Lecture fichier impossible.']);
 
-    // Normaliser encodage + lignes
+    // Normaliser encodage + lignes (ignorer les lignes vides et les commentaires # du template)
     $content = preg_replace("/\r\n|\r/", "\n", $content);
-    $lines = array_values(array_filter(array_map('trim', explode("\n", $content)), fn($l) => $l !== ''));
+    $lines = array_values(array_filter(array_map('trim', explode("\n", $content)), fn($l) => $l !== '' && ($l[0] ?? '') !== '#'));
     if (count($lines) < 2) wp_send_json_error(['message' => 'CSV vide.']);
 
     // Détecter séparateur
@@ -1746,9 +1826,9 @@ add_action('wp_ajax_ldua_bulk_status', function () {
         </label>
 
         <?php if (!empty($all_groups)): ?>
-          <label>Affecter au groupe
-            <select name="group_id">
-              <option value="0">— Aucun —</option>
+          <label>Affecter aux groupes
+            <small style="display:block;color:#555;margin-bottom:3px;">Ctrl+clic (ou Cmd+clic sur Mac) pour sélectionner plusieurs groupes</small>
+            <select name="group_ids[]" multiple size="<?php echo min(6, count($all_groups)); ?>" style="width:100%;min-height:80px;padding:4px;">
               <?php foreach ($all_groups as $g): ?>
                 <option value="<?php echo (int)$g->ID; ?>"><?php echo esc_html(get_the_title($g->ID)); ?></option>
               <?php endforeach; ?>
@@ -1756,9 +1836,9 @@ add_action('wp_ajax_ldua_bulk_status', function () {
           </label>
         <?php endif; ?>
 
-        <label>Affecter au parcours
-          <select name="course_id">
-            <option value="0">— Aucun —</option>
+        <label>Affecter aux parcours
+          <small style="display:block;color:#555;margin-bottom:3px;">Ctrl+clic (ou Cmd+clic sur Mac) pour sélectionner plusieurs parcours</small>
+          <select name="course_ids[]" multiple size="<?php echo min(6, count($all_courses)); ?>" style="width:100%;min-height:80px;padding:4px;">
             <?php foreach ($all_courses as $c): ?>
               <option value="<?php echo (int)$c->ID; ?>"><?php echo esc_html(get_the_title($c->ID)); ?></option>
             <?php endforeach; ?>
@@ -1788,7 +1868,7 @@ add_action('wp_ajax_ldua_bulk_status', function () {
       <p>Format accepté : <strong>.csv</strong> (séparateur <strong>;</strong> recommandé). Colonnes :
         <code>email;prenom;nom;identifiant;mot_de_passe;role;groupes;parcours;date_debut;date_suspension</code>.
       </p>
-      <p><a href="<?php echo esc_url($ep_tmpl_ajax); ?>" class="button">Télécharger le modèle (CSV)</a></p>
+      <p><a href="<?php echo esc_url($ep_tmpl_ajax); ?>" class="button">Télécharger Import E-citylearn</a></p>
 
       <form class="ldua-import-form" method="post" enctype="multipart/form-data" action="<?php echo esc_url($ep_import); ?>" style="display:flex;gap:.6rem;align-items:center;flex-wrap:wrap;">
         <?php wp_nonce_field('ldua_import', 'ldua_import_nonce'); ?>
