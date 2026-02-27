@@ -208,6 +208,12 @@ if (!defined('LDUA_BOOTSTRAP')) {
       if ($s === '') return '';
       if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $s)) return $s;
 
+      // Numéro de série Excel (jours depuis le 01/01/1900, avec bug année bissextile).
+      // Plage : 25569 = 01/01/1970 … 73050 = 31/12/2099
+      if (ctype_digit($s) && (int)$s > 25568 && (int)$s < 73051) {
+        return gmdate('Y-m-d', ((int)$s - 25569) * 86400);
+      }
+
       if (preg_match('/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/', $s, $m)) {
         $d  = str_pad($m[1], 2, '0', STR_PAD_LEFT);
         $mo = str_pad($m[2], 2, '0', STR_PAD_LEFT);
@@ -607,12 +613,21 @@ if (!defined('LDUA_BOOTSTRAP')) {
     };
 
     // --- Pré-enregistrement de toutes les chaînes ---
-    $headers = ['Email', 'Prénom', 'Nom', 'Identifiant', 'Mot de passe', 'Rôle', 'Groupe(s)', 'Parcours', 'Date début', 'Date suspension'];
+    // 14 colonnes : Email Prénom Nom Identifiant MotDePasse Rôle Groupe1 Groupe2 Groupe3 Parcours1 Parcours2 Parcours3 DateDébut DateSuspension
+    $headers = ['Email', 'Prénom', 'Nom', 'Identifiant', 'Mot de passe', 'Rôle',
+                'Groupe 1', 'Groupe 2', 'Groupe 3',
+                'Parcours 1', 'Parcours 2', 'Parcours 3',
+                'Date début', 'Date suspension'];
     foreach ($headers as $h) $si($h);
 
     $ex_g = count($groups)  ? $groups[0]  : '';
+    $ex_g2 = isset($groups[1])  ? $groups[1]  : '';
     $ex_c = count($courses) ? $courses[0] : '';
-    $example = ['exemple@domaine.com', 'Prénom', 'Nom', '', '', 'Apprenant', $ex_g, $ex_c, '2026-01-15', ''];
+    $ex_c2 = isset($courses[1]) ? $courses[1] : '';
+    $example = ['exemple@domaine.com', 'Prénom', 'Nom', '', '', 'Apprenant',
+                $ex_g, $ex_g2, '',
+                $ex_c, $ex_c2, '',
+                '2026-01-15', ''];
     foreach ($example as $v) $si((string)$v);
 
     foreach ($roles   as $r) $si($r);
@@ -634,8 +649,8 @@ if (!defined('LDUA_BOOTSTRAP')) {
     $s1 .= '<sheetViews><sheetView tabSelected="1" workbookViewId="0">';
     $s1 .= '<pane ySplit="1" topLeftCell="A2" activePane="bottomLeft" state="frozen"/>';
     $s1 .= '</sheetView></sheetViews>';
-    // Largeurs colonnes
-    $widths = [30, 15, 15, 20, 20, 22, 45, 45, 14, 18];
+    // Largeurs colonnes (14 colonnes)
+    $widths = [30, 15, 15, 20, 20, 22, 40, 40, 40, 40, 40, 40, 14, 18];
     $s1 .= '<cols>';
     foreach ($widths as $ci => $w) {
       $cn = $ci + 1;
@@ -653,14 +668,28 @@ if (!defined('LDUA_BOOTSTRAP')) {
     $s1 .= '</row>';
     $s1 .= '</sheetData>';
     // Validation des données (listes déroulantes)
+    // Col F=Rôle, G-I=Groupe 1-3, J-L=Parcours 1-3
     $nr = max(1, count($roles));
     $ng = count($groups);
     $nc = count($courses);
-    $dv = 1 + ($ng > 0 ? 1 : 0) + ($nc > 0 ? 1 : 0);
+    $dv = 1 + ($ng > 0 ? 3 : 0) + ($nc > 0 ? 3 : 0);
     $s1 .= '<dataValidations count="' . $dv . '">';
+    // Rôle
     $s1 .= '<dataValidation type="list" sqref="F2:F10000" allowBlank="1" showDropDown="0"><formula1>Listes!$A$1:$A$' . $nr . '</formula1></dataValidation>';
-    if ($ng > 0) $s1 .= '<dataValidation type="list" sqref="G2:G10000" allowBlank="1" showDropDown="0"><formula1>Listes!$B$1:$B$' . $ng . '</formula1></dataValidation>';
-    if ($nc > 0) $s1 .= '<dataValidation type="list" sqref="H2:H10000" allowBlank="1" showDropDown="0"><formula1>Listes!$C$1:$C$' . $nc . '</formula1></dataValidation>';
+    // Groupes 1, 2, 3
+    if ($ng > 0) {
+      $gref = 'Listes!$B$1:$B$' . $ng;
+      $s1 .= '<dataValidation type="list" sqref="G2:G10000" allowBlank="1" showDropDown="0"><formula1>' . $gref . '</formula1></dataValidation>';
+      $s1 .= '<dataValidation type="list" sqref="H2:H10000" allowBlank="1" showDropDown="0"><formula1>' . $gref . '</formula1></dataValidation>';
+      $s1 .= '<dataValidation type="list" sqref="I2:I10000" allowBlank="1" showDropDown="0"><formula1>' . $gref . '</formula1></dataValidation>';
+    }
+    // Parcours 1, 2, 3
+    if ($nc > 0) {
+      $cref = 'Listes!$C$1:$C$' . $nc;
+      $s1 .= '<dataValidation type="list" sqref="J2:J10000" allowBlank="1" showDropDown="0"><formula1>' . $cref . '</formula1></dataValidation>';
+      $s1 .= '<dataValidation type="list" sqref="K2:K10000" allowBlank="1" showDropDown="0"><formula1>' . $cref . '</formula1></dataValidation>';
+      $s1 .= '<dataValidation type="list" sqref="L2:L10000" allowBlank="1" showDropDown="0"><formula1>' . $cref . '</formula1></dataValidation>';
+    }
     $s1 .= '</dataValidations>';
     $s1 .= '</worksheet>';
 
@@ -801,7 +830,14 @@ if (!defined('LDUA_BOOTSTRAP')) {
         $type = $cell->getAttribute('t');
         $v_node = $cell->getElementsByTagName('v')->item(0);
         $val  = $v_node ? trim($v_node->textContent) : '';
-        if ($type === 's' && isset($ss[(int)$val])) $val = $ss[(int)$val];
+        if ($type === 's' && isset($ss[(int)$val])) {
+          $val = $ss[(int)$val]; // shared string
+        } elseif ($type === 'inlineStr') {
+          $is_node = $cell->getElementsByTagName('is')->item(0);
+          $val = '';
+          if ($is_node) foreach ($is_node->getElementsByTagName('t') as $tn) $val .= $tn->textContent;
+        }
+        // type='str' (résultat formule texte) et type='' ou 'n' (numérique) : $val utilisé tel quel
 
         preg_match('/^([A-Z]+)/i', $ref, $m);
         $col_str = strtoupper($m[1] ?? 'A');
@@ -1234,17 +1270,21 @@ wp_send_json_success(['user_id' => (int)$user_id]);
     $headers      = $rows[0];
     $headers_norm = array_map(fn($h) => ldua_norm($h), $headers);
 
-    // mapping FR + compat EN
+    // mapping FR + compat EN (inclut les colonnes Groupe 1/2/3 et Parcours 1/2/3 du template Excel)
     $map = [
-      'email' => ['email', 'e-mail', 'mail'],
-      'prenom' => ['prenom', 'prénom', 'first name', 'firstname', 'first_name'],
-      'nom' => ['nom', 'last name', 'lastname', 'last_name'],
-      'identifiant' => ['identifiant', 'login', 'username', 'user_login'],
-      'mot_de_passe' => ['mot_de_passe', 'mot de passe', 'password', 'pass'],
-      'role' => ['role', 'rôle'],
-      'groupes' => ['groupes', 'groups', 'groupe'],
-      'parcours' => ['parcours', 'courses', 'course', 'cours'],
-      'date_debut' => ['date_debut', 'date debut', 'date_start', 'start_date', 'activation', 'date d\'activation'],
+      'email'           => ['email', 'e-mail', 'mail'],
+      'prenom'          => ['prenom', 'prénom', 'first name', 'firstname', 'first_name'],
+      'nom'             => ['nom', 'last name', 'lastname', 'last_name'],
+      'identifiant'     => ['identifiant', 'login', 'username', 'user_login'],
+      'mot_de_passe'    => ['mot_de_passe', 'mot de passe', 'password', 'pass'],
+      'role'            => ['role', 'rôle', 'role'],
+      'groupes'         => ['groupes', 'groups', 'groupe', 'groupe(s)', 'groupe 1', 'groupe1', 'group 1', 'group1'],
+      'groupes_2'       => ['groupe 2', 'groupe2', 'group 2', 'group2'],
+      'groupes_3'       => ['groupe 3', 'groupe3', 'group 3', 'group3'],
+      'parcours'        => ['parcours', 'courses', 'course', 'cours', 'parcours 1', 'parcours1', 'course 1', 'course1'],
+      'parcours_2'      => ['parcours 2', 'parcours2', 'course 2', 'course2'],
+      'parcours_3'      => ['parcours 3', 'parcours3', 'course 3', 'course3'],
+      'date_debut'      => ['date_debut', 'date debut', 'date_start', 'start_date', 'activation', 'date d\'activation', 'date debut'],
       'date_suspension' => ['date_suspension', 'date suspension', 'suspension', 'suspension_date'],
     ];
 
@@ -1339,8 +1379,17 @@ wp_send_json_success(['user_id' => (int)$user_id]);
       $date_start = ldua_normalize_date_input($get('date_debut'));
       $date_susp  = ldua_normalize_date_input($get('date_suspension'));
 
-      $group_ids  = $parse_ids_or_titles($get('groupes'), $group_by_norm_title);
-      $course_ids = $parse_ids_or_titles($get('parcours'), $course_by_norm_title);
+      // Fusionner les 3 colonnes groupe et les 3 colonnes parcours
+      $group_ids  = array_values(array_unique(array_filter(array_merge(
+        $parse_ids_or_titles($get('groupes'),   $group_by_norm_title),
+        $parse_ids_or_titles($get('groupes_2'), $group_by_norm_title),
+        $parse_ids_or_titles($get('groupes_3'), $group_by_norm_title)
+      ))));
+      $course_ids = array_values(array_unique(array_filter(array_merge(
+        $parse_ids_or_titles($get('parcours'),   $course_by_norm_title),
+        $parse_ids_or_titles($get('parcours_2'), $course_by_norm_title),
+        $parse_ids_or_titles($get('parcours_3'), $course_by_norm_title)
+      ))));
 
       $user_id = email_exists($email);
 
