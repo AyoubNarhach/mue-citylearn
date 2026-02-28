@@ -21,7 +21,7 @@ use uncanny_learndash_groups\Load_Groups;
 use uncanny_learndash_groups\Uncanny_Groups_Helpers;
 use uncanny_learndash_groups\Group_Management_DB_Handler;
 
-const UNCANNY_GROUPS_VERSION = '6.1.3';
+const UNCANNY_GROUPS_VERSION = '6.1.4';
 /**
  *
  */
