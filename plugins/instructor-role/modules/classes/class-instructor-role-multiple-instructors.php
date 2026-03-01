@@ -1291,22 +1291,7 @@ if ( ! class_exists( 'Instructor_Role_Multiple_Instructors' ) ) {
 		 * @return array            Updated list of arguments for the LD Binary selector
 		 */
 		public function filter_instructor_users_for_course( $args, $class ) {
-			if ( ! wdm_is_instructor() ) {
-				return $args;
-			}
-
-			if ( 'Learndash_Binary_Selector_Course_Users' === $class ) {
-				$instructor_courses = ir_get_instructor_complete_course_list();
-				$user_list          = [];
-				foreach ( $instructor_courses as $course_id ) {
-					$course_users = ir_get_users_with_course_access( $course_id, [ 'direct' ] );
-					$user_list    = array_merge( $course_users, $user_list );
-				}
-				if ( empty( $user_list ) ) {
-					$user_list = [ 0 ];
-				}
-				$args['included_ids'] = $user_list;
-			}
+			// No restriction: instructors can see and assign all users.
 			return $args;
 		}
 
