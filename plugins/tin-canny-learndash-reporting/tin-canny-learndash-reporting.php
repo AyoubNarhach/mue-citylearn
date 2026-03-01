@@ -18,7 +18,7 @@
  * Define version
  */
 
-define( 'UNCANNY_REPORTING_VERSION', '5.1.1' );
+define( 'UNCANNY_REPORTING_VERSION', '5.1.2' );
 define( 'UNCANNY_REPORTING_DB_VERSION', '5.1.0' );
 
 add_filter('pre_http_request', function($preempt, $parsed_args, $url) {
