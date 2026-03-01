@@ -101,21 +101,12 @@ if ( ! class_exists( 'Instructor_Role_Groups' ) ) {
 		 * @since 3.3.0
 		 */
 		public function filter_selector_group_users( $args, $class ) {
-			// Check if instructor.
 			if ( ! wdm_is_instructor() ) {
 				return $args;
 			}
 
-			// Check if LD Group User Selector.
-			if ( 'Learndash_Binary_Selector_Group_Users' === $class ) {
-				// Get instructor students.
-				$instructor_students = $this->get_instructor_students_list();
-				if ( empty( $instructor_students ) ) {
-					$instructor_students = [ 0 ];
-				}
-				$args['included_ids'] = $instructor_students;
-			} elseif ( 'Learndash_Binary_Selector_Group_Leaders' === $class ) {
-				// Include instructors in the list.
+			// Keep instructors in the group leaders list but show all users.
+			if ( 'Learndash_Binary_Selector_Group_Leaders' === $class ) {
 				$args['role__in'][] = 'wdm_instructor';
 			}
 
@@ -269,26 +260,7 @@ if ( ! class_exists( 'Instructor_Role_Groups' ) ) {
 		 * @return array            Updated list of arguments for the LD Binary selector
 		 */
 		public function filter_instructor_groups_for_course( $args, $class ) {
-			if ( ! wdm_is_instructor() ) {
-				return $args;
-			}
-
-			if ( 'Learndash_Binary_Selector_Course_Groups' === $class ) {
-				$user_id = get_current_user_id();
-				$groups  = get_posts(
-					[
-						'fields'    => 'ids',
-						'post_type' => 'groups',
-						'author'    => $user_id,
-						'status'    => [ 'publish', 'draft' ],
-					]
-				);
-				if ( empty( $groups ) ) {
-					$groups = [ 0 ];
-				}
-				$args['included_ids'] = $groups;
-			}
-
+			// No restriction: instructors can see and assign all groups.
 			return $args;
 		}
 
