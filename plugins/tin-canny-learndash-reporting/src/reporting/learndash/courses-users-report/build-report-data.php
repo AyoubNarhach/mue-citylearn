@@ -191,6 +191,8 @@ class BuildReportData {
 			$_isolated_children = learndash_get_group_children( CourseData::$isolated_group_id );
 
 			if ( ! empty( $_isolated_children ) ) {
+				// Groupe PARENT : réinitialiser pour ne pas hériter des users admin globaux
+				self::$all_user_ids = array();
 				// Groupe PARENT : chaque parcours ne recense que les inscrits de son groupe enfant
 				foreach ( $_isolated_children as $_child_id ) {
 					$_child_users   = array_map( 'absint', learndash_get_groups_user_ids( (int) $_child_id ) );
