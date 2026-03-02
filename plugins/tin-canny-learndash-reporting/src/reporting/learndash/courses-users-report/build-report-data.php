@@ -187,13 +187,31 @@ class BuildReportData {
 				Config::profile_function( [ __CLASS__, 'get_courses_for_all_groups' ] );
 			}
 		} elseif ( 0 !== CourseData::$isolated_group_id && ( uotc_is_current_user_admin() || learndash_is_group_leader_user( wp_get_current_user() ) ) ) {
-			self::$all_user_ids = Config::profile_function([ __CLASS__, 'get_group_users' ], CourseData::$isolated_group_id );
-			$group_courses      = Config::profile_function([__CLASS__, 'get_group_courses'], CourseData::$isolated_group_id );
 
-			if ( ! empty( $group_courses ) && ! empty( self::$all_user_ids ) ) {
-				foreach ( $group_courses as $course_id ) {
-					foreach ( self::$all_user_ids as $user_id ) {
-						self::$course_access_list[ $course_id ][ (int) $user_id ] = (int) $user_id;
+			$_isolated_children = learndash_get_group_children( CourseData::$isolated_group_id );
+
+			if ( ! empty( $_isolated_children ) ) {
+				// Groupe PARENT : chaque parcours ne recense que les inscrits de son groupe enfant
+				foreach ( $_isolated_children as $_child_id ) {
+					$_child_users   = array_map( 'absint', learndash_get_groups_user_ids( (int) $_child_id ) );
+					$_child_courses = array_map( 'absint', learndash_group_enrolled_courses( (int) $_child_id ) );
+					foreach ( $_child_courses as $_cid ) {
+						foreach ( $_child_users as $_uid ) {
+							self::$all_user_ids[ $_uid ]                        = $_uid;
+							self::$course_access_list[ $_cid ][ (int) $_uid ] = (int) $_uid;
+						}
+					}
+				}
+			} else {
+				// Groupe ENFANT (feuille) : comportement standard
+				self::$all_user_ids = Config::profile_function( [ __CLASS__, 'get_group_users' ], CourseData::$isolated_group_id );
+				$group_courses      = Config::profile_function( [ __CLASS__, 'get_group_courses' ], CourseData::$isolated_group_id );
+
+				if ( ! empty( $group_courses ) && ! empty( self::$all_user_ids ) ) {
+					foreach ( $group_courses as $course_id ) {
+						foreach ( self::$all_user_ids as $user_id ) {
+							self::$course_access_list[ $course_id ][ (int) $user_id ] = (int) $user_id;
+						}
 					}
 				}
 			}
