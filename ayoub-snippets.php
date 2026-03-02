@@ -6295,18 +6295,19 @@ add_action( 'wp_head', function () {
 }, 100 );
 
 /**
- * Groupes parent/enfant — le groupe parent est un agrégateur central
+ * Groupes parent/enfant — le groupe parent est un conteneur de membres uniquement
  *
  * Comportement voulu :
  *  - Inscrire quelqu'un dans un groupe ENFANT → inscrit automatiquement dans le PARENT
- *  - Affecter un PARCOURS à un groupe ENFANT → affecté automatiquement dans le PARENT
- *  - Retirer un PARCOURS d'un groupe ENFANT → retiré du PARENT si plus aucun enfant ne l'a
+ *    (pour que le filtrage par groupe parent fonctionne dans les rapports)
+ *  - Les PARCOURS restent EXCLUSIVEMENT dans les groupes ENFANTS
+ *    → un apprenant n'accède qu'aux parcours de son groupe enfant, jamais à ceux des autres
  *
- * Le groupe parent n'est jamais utilisé directement pour les inscriptions ;
- * il agrège toute la data de ses groupes enfants (users, parcours, stats).
+ * IMPORTANT : le groupe parent ne doit jamais avoir de parcours directement assignés.
+ * Les statistiques par parent agrègent les données des enfants sans croix-contamination.
  */
 
-// 1. Sync membres : groupe enfant → groupe parent
+// Sync membres uniquement : groupe enfant → groupe parent (pour filtrage rapports)
 add_action( 'ld_added_group_access', function( $user_id, $group_id ) {
     static $running = [];
 
@@ -6326,48 +6327,28 @@ add_action( 'ld_added_group_access', function( $user_id, $group_id ) {
     }
 }, 10, 2 );
 
-// 2. Sync parcours : quand un parcours est ajouté à un groupe enfant → l'ajouter aussi au parent
-add_action( 'ld_added_course_group_access', function( $course_id, $group_id ) {
-    $parent_id = wp_get_post_parent_id( $group_id );
-    if ( empty( $parent_id ) ) {
-        return;
-    }
-    // ld_update_course_group_access vérifie lui-même si le parcours est déjà présent
-    ld_update_course_group_access( $course_id, $parent_id, false );
-}, 10, 2 );
-
-// 3. Sync parcours : quand un parcours est retiré d'un groupe enfant
-//    → le retirer du parent SEULEMENT si aucun autre groupe enfant ne l'a encore
-add_action( 'ld_removed_course_group_access', function( $course_id, $group_id ) {
-    $parent_id = wp_get_post_parent_id( $group_id );
-    if ( empty( $parent_id ) ) {
-        return;
-    }
-
-    foreach ( (array) learndash_get_group_children( $parent_id ) as $sibling_id ) {
-        if ( (int) $sibling_id !== (int) $group_id && learndash_group_has_course( $sibling_id, $course_id ) ) {
-            return; // Un autre enfant a encore ce parcours → garder dans le parent
-        }
-    }
-
-    ld_update_course_group_access( $course_id, $parent_id, true );
-}, 10, 2 );
+// NB : les hooks de sync parcours enfant → parent ont été volontairement supprimés.
+// Les parcours ne doivent jamais être propagés au groupe parent pour éviter
+// qu'un membre d'un groupe enfant hérite des parcours de tous les autres groupes enfants.
 
 /**
- * Migration one-shot : synchronisation de l'existant groupes enfants → parent
+ * Scripts d'administration groupes parent/enfant
  *
- * Pour lancer la migration, connectez-vous en tant qu'admin WordPress et visitez :
+ * ÉTAPE 1 — Nettoyer les parcours mal affectés aux groupes parents (à faire EN PREMIER) :
+ *   https://votre-site.com/wp-admin/?dmmlearn_sync_groups=cleanup_courses
+ *
+ *   Retire de chaque groupe PARENT tous les parcours qui proviennent de ses groupes enfants.
+ *   Les parcours doivent rester uniquement dans les groupes enfants.
+ *   Les accès cours déjà accordés aux apprenants (via leur groupe enfant) ne sont PAS touchés.
+ *
+ * ÉTAPE 2 — Synchroniser les membres existants enfant → parent (une seule fois) :
  *   https://votre-site.com/wp-admin/?dmmlearn_sync_groups=run
  *
- * Pour forcer une re-exécution (reset) :
- *   https://votre-site.com/wp-admin/?dmmlearn_sync_groups=reset
+ *   Ajoute chaque membre des groupes enfants dans leur groupe parent respectif.
+ *   Ne sync PAS les parcours (ils restent dans les groupes enfants uniquement).
  *
- * La migration :
- *   1. Parcourt tous les groupes LearnDash enfants (qui ont un groupe parent)
- *   2. Ajoute tous leurs membres dans le groupe parent
- *   3. Assigne tous leurs parcours au groupe parent
- *   4. Se marque comme "terminée" en base pour ne plus se relancer accidentellement
- *   5. Affiche un rapport HTML détaillé
+ * Reset migration membres :
+ *   https://votre-site.com/wp-admin/?dmmlearn_sync_groups=reset
  */
 add_action( 'admin_init', function () {
 
@@ -6380,28 +6361,99 @@ add_action( 'admin_init', function () {
         wp_die( 'Accès refusé — administrateur requis.' );
     }
 
-    // Reset : permet de relancer la migration
+    $css = '<style>body{font-family:sans-serif;margin:30px}h1{color:#1d2327}h2{color:#2271b1}h3{color:#1d2327}table{border-collapse:collapse;width:100%;margin-bottom:20px}th,td{border:1px solid #ddd;padding:8px 12px;text-align:left}th{background:#f0f0f1}tr:nth-child(even){background:#f9f9f9}.badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:12px;font-weight:bold}.green{background:#d1fae5;color:#065f46}.red{background:#fee2e2;color:#991b1b}.blue{background:#dbeafe;color:#1e40af}.gray{background:#f3f4f6;color:#374151}</style>';
+
+    // ── ÉTAPE 1 : Nettoyer les parcours des groupes parents ───────────────
+    if ( 'cleanup_courses' === $action ) {
+        set_time_limit( 0 );
+
+        $all_groups = get_posts( [
+            'post_type'      => 'groups',
+            'post_status'    => 'publish',
+            'posts_per_page' => -1,
+            'fields'         => 'ids',
+        ] );
+
+        // Identifier les groupes parents (ceux qui ont au moins un enfant)
+        $parent_ids = [];
+        foreach ( $all_groups as $gid ) {
+            $pid = wp_get_post_parent_id( $gid );
+            if ( ! empty( $pid ) ) {
+                $parent_ids[ $pid ] = true;
+            }
+        }
+
+        $total_removed = 0;
+        $details       = [];
+
+        foreach ( array_keys( $parent_ids ) as $parent_id ) {
+            $parent_courses = learndash_group_enrolled_courses( $parent_id );
+            if ( empty( $parent_courses ) ) {
+                continue;
+            }
+
+            $removed = [];
+            foreach ( (array) $parent_courses as $course_id ) {
+                ld_update_course_group_access( $course_id, $parent_id, true ); // true = remove
+                $removed[] = get_the_title( $course_id ) . ' (ID:' . $course_id . ')';
+                $total_removed++;
+            }
+
+            if ( $removed ) {
+                $details[] = [
+                    'parent'  => get_the_title( $parent_id ) . ' (ID:' . $parent_id . ')',
+                    'removed' => $removed,
+                ];
+            }
+        }
+
+        $s  = $css;
+        $s .= '<h1>Nettoyage parcours — Groupes parents</h1>';
+        $s .= '<p>Exécuté le <strong>' . current_time( 'mysql' ) . '</strong></p>';
+        $s .= '<h2>Résumé</h2><table>';
+        $s .= '<tr><th>Groupes parents traités</th><td><span class="badge blue">' . count( $parent_ids ) . '</span></td></tr>';
+        $s .= '<tr><th>Parcours retirés des groupes parents</th><td><span class="badge red">' . $total_removed . '</span></td></tr>';
+        $s .= '</table>';
+
+        if ( $details ) {
+            $s .= '<h2>Détail</h2>';
+            foreach ( $details as $d ) {
+                $s .= '<h3>' . esc_html( $d['parent'] ) . '</h3>';
+                $s .= '<p>Parcours retirés :</p><ul>';
+                foreach ( $d['removed'] as $c ) {
+                    $s .= '<li>' . esc_html( $c ) . '</li>';
+                }
+                $s .= '</ul>';
+            }
+        } else {
+            $s .= '<p>Aucun parcours à retirer — groupes parents déjà propres.</p>';
+        }
+
+        $s .= '<hr><p>Passez maintenant à <strong>l\'étape 2</strong> : <a href="?dmmlearn_sync_groups=run">Synchroniser les membres</a></p>';
+        wp_die( $s );
+    }
+
+    // ── Reset migration membres ───────────────────────────────────────────
     if ( 'reset' === $action ) {
         delete_option( 'dmmlearn_groups_migration_done' );
-        wp_die( '<p style="font-family:sans-serif">✅ Migration réinitialisée. Vous pouvez maintenant visiter <code>?dmmlearn_sync_groups=run</code> pour la relancer.</p>' );
+        wp_die( $css . '<p>Migration réinitialisée. <a href="?dmmlearn_sync_groups=run">Relancer la migration membres</a></p>' );
     }
 
     if ( 'run' !== $action ) {
-        wp_die( 'Paramètre invalide. Utilisez <code>?dmmlearn_sync_groups=run</code>.' );
+        wp_die( 'Paramètre invalide.' );
     }
 
+    // ── ÉTAPE 2 : Sync membres enfant → parent ────────────────────────────
     $already_done = get_option( 'dmmlearn_groups_migration_done' );
     if ( $already_done ) {
         wp_die(
-            '<p style="font-family:sans-serif">⚠️ Migration déjà effectuée le <strong>' . esc_html( $already_done ) . '</strong>.<br>'
-            . 'Pour la relancer, visitez <code>?dmmlearn_sync_groups=reset</code> puis revenez ici.</p>'
+            $css . '<p>⚠️ Migration membres déjà effectuée le <strong>' . esc_html( $already_done ) . '</strong>.<br>'
+            . 'Pour relancer : <a href="?dmmlearn_sync_groups=reset">reset</a> puis revenez ici.</p>'
         );
     }
 
-    // Désactiver le timeout — potentiellement beaucoup de données
     set_time_limit( 0 );
 
-    // ── Récupérer tous les groupes LearnDash ──────────────────────────────
     $all_groups = get_posts( [
         'post_type'      => 'groups',
         'post_status'    => 'publish',
@@ -6409,92 +6461,65 @@ add_action( 'admin_init', function () {
         'fields'         => 'ids',
     ] );
 
-    // ── Rapport ───────────────────────────────────────────────────────────
     $report = [
-        'groups_processed'  => 0,
-        'users_added'       => 0,
-        'users_skipped'     => 0,
-        'courses_added'     => 0,
-        'courses_skipped'   => 0,
-        'details'           => [],
+        'groups_processed' => 0,
+        'users_added'      => 0,
+        'users_skipped'    => 0,
+        'details'          => [],
     ];
 
     foreach ( $all_groups as $group_id ) {
         $parent_id = wp_get_post_parent_id( $group_id );
         if ( empty( $parent_id ) ) {
-            continue; // groupe racine, pas un enfant
+            continue;
         }
 
         $report['groups_processed']++;
-        $group_name  = get_the_title( $group_id );
-        $parent_name = get_the_title( $parent_id );
-        $detail      = [
-            'child'          => $group_name . ' (ID:' . $group_id . ')',
-            'parent'         => $parent_name . ' (ID:' . $parent_id . ')',
-            'users_added'    => [],
-            'users_skipped'  => [],
-            'courses_added'  => [],
-            'courses_skipped'=> [],
+        $detail = [
+            'child'         => get_the_title( $group_id ) . ' (ID:' . $group_id . ')',
+            'parent'        => get_the_title( $parent_id ) . ' (ID:' . $parent_id . ')',
+            'users_added'   => [],
+            'users_skipped' => 0,
         ];
 
-        // ── Sync membres ─────────────────────────────────────────────────
         $child_users = learndash_get_groups_user_ids( $group_id );
         foreach ( (array) $child_users as $user_id ) {
             if ( learndash_is_user_in_group( $user_id, $parent_id ) ) {
-                $detail['users_skipped'][] = $user_id;
+                $detail['users_skipped']++;
                 $report['users_skipped']++;
             } else {
                 ld_update_group_access( $user_id, $parent_id );
-                $detail['users_added'][] = $user_id;
+                $u = get_userdata( $user_id );
+                $detail['users_added'][] = $u ? $u->user_login . ' (ID:' . $user_id . ')' : 'ID:' . $user_id;
                 $report['users_added']++;
-            }
-        }
-
-        // ── Sync parcours ────────────────────────────────────────────────
-        $child_courses = learndash_group_enrolled_courses( $group_id );
-        foreach ( (array) $child_courses as $course_id ) {
-            if ( learndash_group_has_course( $parent_id, $course_id ) ) {
-                $detail['courses_skipped'][] = get_the_title( $course_id ) . ' (ID:' . $course_id . ')';
-                $report['courses_skipped']++;
-            } else {
-                ld_update_course_group_access( $course_id, $parent_id, false );
-                $detail['courses_added'][] = get_the_title( $course_id ) . ' (ID:' . $course_id . ')';
-                $report['courses_added']++;
             }
         }
 
         $report['details'][] = $detail;
     }
 
-    // Marquer la migration comme terminée
     $done_at = current_time( 'mysql' );
     update_option( 'dmmlearn_groups_migration_done', $done_at );
 
-    // ── Affichage du rapport ──────────────────────────────────────────────
-    $s = '<style>body{font-family:sans-serif;margin:30px}h1{color:#1d2327}h2{color:#2271b1}table{border-collapse:collapse;width:100%;margin-bottom:20px}th,td{border:1px solid #ddd;padding:8px 12px;text-align:left}th{background:#f0f0f1}tr:nth-child(even){background:#f9f9f9}.badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:12px;font-weight:bold}.green{background:#d1fae5;color:#065f46}.blue{background:#dbeafe;color:#1e40af}.gray{background:#f3f4f6;color:#374151}</style>';
-    $s .= '<h1>🔄 Migration Groupes Parent/Enfant — Rapport</h1>';
+    $s  = $css;
+    $s .= '<h1>Migration membres — Groupes enfants → Parents</h1>';
     $s .= '<p>Exécutée le <strong>' . esc_html( $done_at ) . '</strong></p>';
-
     $s .= '<h2>Résumé</h2><table>';
     $s .= '<tr><th>Groupes enfants traités</th><td><span class="badge blue">' . $report['groups_processed'] . '</span></td></tr>';
     $s .= '<tr><th>Membres ajoutés au groupe parent</th><td><span class="badge green">' . $report['users_added'] . '</span></td></tr>';
     $s .= '<tr><th>Membres déjà présents (ignorés)</th><td><span class="badge gray">' . $report['users_skipped'] . '</span></td></tr>';
-    $s .= '<tr><th>Parcours ajoutés au groupe parent</th><td><span class="badge green">' . $report['courses_added'] . '</span></td></tr>';
-    $s .= '<tr><th>Parcours déjà présents (ignorés)</th><td><span class="badge gray">' . $report['courses_skipped'] . '</span></td></tr>';
     $s .= '</table>';
 
     if ( ! empty( $report['details'] ) ) {
         $s .= '<h2>Détail par groupe enfant</h2>';
         foreach ( $report['details'] as $d ) {
-            $s .= '<h3>📁 ' . esc_html( $d['child'] ) . ' → ' . esc_html( $d['parent'] ) . '</h3>';
-            $s .= '<table><tr><th>Catégorie</th><th>Ajoutés</th><th>Déjà présents</th></tr>';
-            $s .= '<tr><td>Membres</td>';
-            $s .= '<td>' . ( $d['users_added'] ? implode( ', ', $d['users_added'] ) : '—' ) . '</td>';
-            $s .= '<td>' . ( $d['users_skipped'] ? count( $d['users_skipped'] ) . ' user(s)' : '—' ) . '</td></tr>';
-            $s .= '<tr><td>Parcours</td>';
-            $s .= '<td>' . ( $d['courses_added'] ? '<ul><li>' . implode( '</li><li>', array_map( 'esc_html', $d['courses_added'] ) ) . '</li></ul>' : '—' ) . '</td>';
-            $s .= '<td>' . ( $d['courses_skipped'] ? '<ul><li>' . implode( '</li><li>', array_map( 'esc_html', $d['courses_skipped'] ) ) . '</li></ul>' : '—' ) . '</td></tr>';
-            $s .= '</table>';
+            $s .= '<h3>' . esc_html( $d['child'] ) . ' → ' . esc_html( $d['parent'] ) . '</h3>';
+            if ( $d['users_added'] ) {
+                $s .= '<p><strong>Ajoutés :</strong> ' . implode( ', ', array_map( 'esc_html', $d['users_added'] ) ) . '</p>';
+            }
+            if ( $d['users_skipped'] ) {
+                $s .= '<p><em>' . $d['users_skipped'] . ' membre(s) déjà présents dans le parent.</em></p>';
+            }
         }
     }
 
