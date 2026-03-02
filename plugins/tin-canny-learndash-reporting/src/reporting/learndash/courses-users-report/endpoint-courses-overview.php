@@ -129,15 +129,16 @@ class CourseData extends BuildReportData {
 
 			$rearrange_group_list[ $group_id ]['ID']                   = $group_id;
 			$rearrange_group_list[ $group_id ]['post_title']           = get_the_title( $group_id );
-			$rearrange_group_list[ $group_id ]['groups_course_access'] = learndash_group_enrolled_courses( $group_id );
-
-			// Agrégation : inclure les users des groupes enfants dans le rapport du groupe parent.
-			$groups_user  = learndash_get_groups_user_ids( $group_id );
-			$child_groups = learndash_get_group_children( $group_id );
+			// Agrégation : pour le groupe parent, inclure users ET parcours de tous les groupes enfants.
+			$child_groups         = learndash_get_group_children( $group_id );
+			$groups_user          = learndash_get_groups_user_ids( $group_id );
+			$groups_course_access = learndash_group_enrolled_courses( $group_id );
 			foreach ( (array) $child_groups as $child_id ) {
-				$groups_user = array_unique( array_merge( $groups_user, learndash_get_groups_user_ids( $child_id ) ) );
+				$groups_user          = array_unique( array_merge( $groups_user, learndash_get_groups_user_ids( $child_id ) ) );
+				$groups_course_access = array_unique( array_merge( $groups_course_access, learndash_group_enrolled_courses( $child_id ) ) );
 			}
-			$rearrange_group_list[ $group_id ]['groups_user'] = $groups_user;
+			$rearrange_group_list[ $group_id ]['groups_user']          = $groups_user;
+			$rearrange_group_list[ $group_id ]['groups_course_access'] = $groups_course_access;
 		}
 
 		Cache::create( __FUNCTION__ . $leader_id . $flag, $rearrange_group_list );

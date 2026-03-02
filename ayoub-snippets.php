@@ -6295,33 +6295,61 @@ add_action( 'wp_head', function () {
 }, 100 );
 
 /**
- * Groupes parent/enfant — inscription automatique au groupe parent
+ * Groupes parent/enfant — le groupe parent est un agrégateur central
  *
- * Quand un apprenant est ajouté à un groupe enfant, il est automatiquement
- * inscrit dans le groupe parent. Le groupe parent devient ainsi un groupe
- * global qui agrège tous les apprenants de ses sous-groupes.
+ * Comportement voulu :
+ *  - Inscrire quelqu'un dans un groupe ENFANT → inscrit automatiquement dans le PARENT
+ *  - Affecter un PARCOURS à un groupe ENFANT → affecté automatiquement dans le PARENT
+ *  - Retirer un PARCOURS d'un groupe ENFANT → retiré du PARENT si plus aucun enfant ne l'a
  *
- * Le drapeau statique évite toute récursion si le parent a lui-même un parent.
+ * Le groupe parent n'est jamais utilisé directement pour les inscriptions ;
+ * il agrège toute la data de ses groupes enfants (users, parcours, stats).
  */
+
+// 1. Sync membres : groupe enfant → groupe parent
 add_action( 'ld_added_group_access', function( $user_id, $group_id ) {
     static $running = [];
 
-    // Anti-boucle : on n'exécute qu'une fois par couple user/group
     $key = $user_id . '_' . $group_id;
     if ( ! empty( $running[ $key ] ) ) {
         return;
     }
     $running[ $key ] = true;
 
-    // Vérifier si ce groupe est un enfant (a un parent)
     $parent_id = wp_get_post_parent_id( $group_id );
     if ( empty( $parent_id ) ) {
-        return; // groupe racine, rien à faire
+        return;
     }
 
-    // Ajouter l'utilisateur au groupe parent s'il n'y est pas déjà
     if ( ! learndash_is_user_in_group( $user_id, $parent_id ) ) {
         ld_update_group_access( $user_id, $parent_id );
     }
+}, 10, 2 );
+
+// 2. Sync parcours : quand un parcours est ajouté à un groupe enfant → l'ajouter aussi au parent
+add_action( 'ld_added_course_group_access', function( $course_id, $group_id ) {
+    $parent_id = wp_get_post_parent_id( $group_id );
+    if ( empty( $parent_id ) ) {
+        return;
+    }
+    // ld_update_course_group_access vérifie lui-même si le parcours est déjà présent
+    ld_update_course_group_access( $course_id, $parent_id, false );
+}, 10, 2 );
+
+// 3. Sync parcours : quand un parcours est retiré d'un groupe enfant
+//    → le retirer du parent SEULEMENT si aucun autre groupe enfant ne l'a encore
+add_action( 'ld_removed_course_group_access', function( $course_id, $group_id ) {
+    $parent_id = wp_get_post_parent_id( $group_id );
+    if ( empty( $parent_id ) ) {
+        return;
+    }
+
+    foreach ( (array) learndash_get_group_children( $parent_id ) as $sibling_id ) {
+        if ( (int) $sibling_id !== (int) $group_id && learndash_group_has_course( $sibling_id, $course_id ) ) {
+            return; // Un autre enfant a encore ce parcours → garder dans le parent
+        }
+    }
+
+    ld_update_course_group_access( $course_id, $parent_id, true );
 }, 10, 2 );
 
