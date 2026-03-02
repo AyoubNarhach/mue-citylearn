@@ -193,13 +193,24 @@ class BuildReportData {
 			if ( ! empty( $_isolated_children ) ) {
 				// Groupe PARENT : réinitialiser pour ne pas hériter des users admin globaux
 				self::$all_user_ids = array();
-				// Groupe PARENT : chaque parcours ne recense que les inscrits de son groupe enfant
+				// Groupe PARENT : agréger tous les apprenants et parcours de chaque groupe enfant
 				foreach ( $_isolated_children as $_child_id ) {
 					$_child_users   = array_map( 'absint', learndash_get_groups_user_ids( (int) $_child_id ) );
 					$_child_courses = array_map( 'absint', learndash_group_enrolled_courses( (int) $_child_id ) );
+
+					// Ajouter TOUS les apprenants du groupe enfant dans all_user_ids,
+					// même si le groupe n'a aucun parcours affecté.
+					foreach ( $_child_users as $_uid ) {
+						self::$all_user_ids[ $_uid ] = $_uid;
+					}
+
+					// Construire la liste d'accès par parcours : seuls les apprenants
+					// de CE groupe enfant sont rattachés à SES parcours.
 					foreach ( $_child_courses as $_cid ) {
+						if ( ! isset( self::$course_access_list[ $_cid ] ) ) {
+							self::$course_access_list[ $_cid ] = array();
+						}
 						foreach ( $_child_users as $_uid ) {
-							self::$all_user_ids[ $_uid ]                        = $_uid;
 							self::$course_access_list[ $_cid ][ (int) $_uid ] = (int) $_uid;
 						}
 					}
