@@ -5058,14 +5058,15 @@ if (!defined('LDGA_BOOTSTRAP')) {
     $paged  = max(1,(int)($_GET['ldga_paged'] ?? 1));
 
     $q = new WP_Query([
-      'post_type'      => 'groups',
-      'post_status'    => ['publish'], // uniquement publiés
-      'paged'          => $paged,
-      'posts_per_page' => $per_page,
-      's'              => $search,
-      'orderby'        => 'title',
-      'order'          => 'ASC',
-      'no_found_rows'  => false,
+      'post_type'           => 'groups',
+      'post_status'         => ['publish'], // uniquement publiés
+      'post_parent__not_in' => [0],         // groupes enfants uniquement (exclut les groupes parents)
+      'paged'               => $paged,
+      'posts_per_page'      => $per_page,
+      's'                   => $search,
+      'orderby'             => 'title',
+      'order'               => 'ASC',
+      'no_found_rows'       => false,
     ]);
 
     $uid    = 'ldga_'.wp_generate_password(6,false,false);
