@@ -806,7 +806,7 @@ public static function get_course_quiz_average( $course_id, $user_activities, $u
 				FROM {$wpdb->prefix}uotincan_reporting
 				WHERE course_id = %d
 				AND user_id IN ($placeholders)
-				AND result IS NOT NULL
+				AND result > 0
 				AND verb IN ('passed', 'failed', 'scored', 'completed', 'terminated', 'attempted')
 				GROUP BY user_id, lesson_id",
 				array_merge( array( $course_id ), $uid_list )
