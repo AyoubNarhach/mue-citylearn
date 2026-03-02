@@ -38,6 +38,10 @@ if ( ! is_admin() ) {
 		// check is user group
 		if ( in_array( $get_filter_group_id, $user_group_ids, true ) ) {
 			$course_ids = learndash_group_enrolled_courses( $get_filter_group_id );
+			// Agrégation groupe parent : inclure les parcours de tous les groupes enfants
+			foreach ( (array) learndash_get_group_children( $get_filter_group_id ) as $_tc_child_id ) {
+				$course_ids = array_unique( array_merge( $course_ids, learndash_group_enrolled_courses( $_tc_child_id ) ) );
+			}
 			$args    = array(
 				'numberposts' => 9999, // phpcs:ignore WordPress.WP.PostsPerPage.posts_per_page_numberposts
 				'include'     => array_map( 'intval', $course_ids ),

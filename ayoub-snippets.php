@@ -6295,41 +6295,172 @@ add_action( 'wp_head', function () {
 }, 100 );
 
 /**
- * Groupes parent/enfant — le groupe parent est un conteneur de membres uniquement
+ * Groupes parent/enfant — agrégation reporting sans inscription croisée
  *
  * Comportement voulu :
- *  - Inscrire quelqu'un dans un groupe ENFANT → inscrit automatiquement dans le PARENT
- *    (pour que le filtrage par groupe parent fonctionne dans les rapports)
- *  - Les PARCOURS restent EXCLUSIVEMENT dans les groupes ENFANTS
- *    → un apprenant n'accède qu'aux parcours de son groupe enfant, jamais à ceux des autres
+ *  - Inscrire quelqu'un dans un groupe ENFANT → il reste UNIQUEMENT dans ce groupe enfant,
+ *    exactement comme avant (aucun hook de propagation vers le parent).
+ *  - Les PARCOURS restent EXCLUSIVEMENT dans les groupes ENFANTS.
+ *  - Le groupe PARENT ne contient ni membres ni parcours directement.
  *
- * IMPORTANT : le groupe parent ne doit jamais avoir de parcours directement assignés.
- * Les statistiques par parent agrègent les données des enfants sans croix-contamination.
+ * Pourquoi le hook de propagation membres était problématique :
+ *  Ajouter un user au parent déclenchait learndash_bulk_create_course_access_activities()
+ *  qui, via l'override Uncanny Groups (hierarchy), inscrivait l'user à TOUS les parcours
+ *  de TOUS les groupes enfants → contamination des stats.
+ *
+ * Solution : le reporting parent agrège via le filtre ulgm_is_hierarchy_setting_enabled.
+ *  Uncanny Groups et TinCanny lisent directement les méta des groupes enfants en DB,
+ *  sans que les users soient physiquement dans le groupe parent.
  */
 
-// Sync membres uniquement : groupe enfant → groupe parent (pour filtrage rapports)
-add_action( 'ld_added_group_access', function( $user_id, $group_id ) {
-    static $running = [];
-
-    $key = $user_id . '_' . $group_id;
-    if ( ! empty( $running[ $key ] ) ) {
-        return;
+// Force le mode hierarchique d'Uncanny Groups pour tout groupe parent (ayant des enfants).
+// Cela active l'agrégation membres + parcours dans [uo_groups], [uo_groups_course_report]
+// et les rapports TinCanny LearnDash — sans aucune inscription croisée.
+add_filter( 'ulgm_is_hierarchy_setting_enabled', function( $enabled, $group_id ) {
+    if ( empty( $group_id ) ) {
+        return $enabled;
     }
-    $running[ $key ] = true;
-
-    $parent_id = wp_get_post_parent_id( $group_id );
-    if ( empty( $parent_id ) ) {
-        return;
-    }
-
-    if ( ! learndash_is_user_in_group( $user_id, $parent_id ) ) {
-        ld_update_group_access( $user_id, $parent_id );
-    }
+    // Si le groupe a des enfants → c'est un groupe parent → activer l'agrégation
+    $children = learndash_get_group_children( (int) $group_id );
+    return ! empty( $children ) ? true : $enabled;
 }, 10, 2 );
 
-// NB : les hooks de sync parcours enfant → parent ont été volontairement supprimés.
-// Les parcours ne doivent jamais être propagés au groupe parent pour éviter
-// qu'un membre d'un groupe enfant hérite des parcours de tous les autres groupes enfants.
+/**
+ * Scripts de nettoyage one-shot — groupes parent/enfant
+ *
+ * Nettoyer les membres parasites des groupes parents (À FAIRE EN PREMIER) :
+ *   https://votre-site.com/wp-admin/?dmmlearn_sync_groups=cleanup_users
+ *
+ *   Retire tous les membres des groupes PARENTS.
+ *   Les apprenants doivent être uniquement dans leurs groupes ENFANTS.
+ *   Leur accès aux parcours (via le groupe enfant) est conservé.
+ *
+ * Nettoyer les parcours parasites des groupes parents :
+ *   https://votre-site.com/wp-admin/?dmmlearn_sync_groups=cleanup_courses
+ *
+ *   Retire tous les parcours des groupes PARENTS.
+ *   Les parcours restent dans les groupes enfants.
+ *
+ * Reset (pour relancer cleanup_users) :
+ *   https://votre-site.com/wp-admin/?dmmlearn_sync_groups=reset
+ */
+add_action( 'admin_init', function () {
+
+    $action = isset( $_GET['dmmlearn_sync_groups'] ) ? sanitize_text_field( $_GET['dmmlearn_sync_groups'] ) : '';
+    if ( empty( $action ) ) {
+        return;
+    }
+
+    if ( ! current_user_can( 'manage_options' ) ) {
+        wp_die( 'Accès refusé — administrateur requis.' );
+    }
+
+    $css = '<style>body{font-family:sans-serif;margin:30px}h1,h2,h3{color:#1d2327}table{border-collapse:collapse;width:100%;margin-bottom:20px}th,td{border:1px solid #ddd;padding:8px 12px;text-align:left}th{background:#f0f0f1}.badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:12px;font-weight:bold}.green{background:#d1fae5;color:#065f46}.red{background:#fee2e2;color:#991b1b}.blue{background:#dbeafe;color:#1e40af}.gray{background:#f3f4f6;color:#374151}</style>';
+
+    // ── IDENTIFIER LES GROUPES PARENTS ───────────────────────────────────
+    $all_groups = get_posts( [
+        'post_type'      => 'groups',
+        'post_status'    => 'publish',
+        'posts_per_page' => -1,
+        'fields'         => 'ids',
+    ] );
+    $parent_ids = [];
+    foreach ( $all_groups as $gid ) {
+        if ( ! empty( wp_get_post_parent_id( $gid ) ) ) {
+            $parent_ids[ wp_get_post_parent_id( $gid ) ] = true;
+        }
+    }
+
+    // ── RESET ─────────────────────────────────────────────────────────────
+    if ( 'reset' === $action ) {
+        delete_option( 'dmmlearn_cleanup_users_done' );
+        wp_die( $css . '<p>Reset effectué. <a href="?dmmlearn_sync_groups=cleanup_users">Relancer cleanup_users</a></p>' );
+    }
+
+    // ── CLEANUP PARCOURS des groupes parents ──────────────────────────────
+    if ( 'cleanup_courses' === $action ) {
+        set_time_limit( 0 );
+        $total_removed = 0;
+        $details       = [];
+
+        foreach ( array_keys( $parent_ids ) as $parent_id ) {
+            $parent_courses = learndash_group_enrolled_courses( $parent_id );
+            if ( empty( $parent_courses ) ) {
+                continue;
+            }
+            $removed = [];
+            foreach ( (array) $parent_courses as $course_id ) {
+                ld_update_course_group_access( $course_id, $parent_id, true );
+                $removed[] = get_the_title( $course_id ) . ' (ID:' . $course_id . ')';
+                $total_removed++;
+            }
+            if ( $removed ) {
+                $details[] = [ 'parent' => get_the_title( $parent_id ) . ' (ID:' . $parent_id . ')', 'removed' => $removed ];
+            }
+        }
+
+        $s  = $css . '<h1>Nettoyage parcours — Groupes parents</h1>';
+        $s .= '<p>Exécuté le <strong>' . current_time( 'mysql' ) . '</strong></p>';
+        $s .= '<table><tr><th>Groupes parents traités</th><td><span class="badge blue">' . count( $parent_ids ) . '</span></td></tr>';
+        $s .= '<tr><th>Parcours retirés</th><td><span class="badge red">' . $total_removed . '</span></td></tr></table>';
+        foreach ( $details as $d ) {
+            $s .= '<h3>' . esc_html( $d['parent'] ) . '</h3><ul>';
+            foreach ( $d['removed'] as $c ) { $s .= '<li>' . esc_html( $c ) . '</li>'; }
+            $s .= '</ul>';
+        }
+        if ( ! $details ) {
+            $s .= '<p>Aucun parcours à retirer — groupes parents déjà propres.</p>';
+        }
+        $s .= '<hr><p>Procédez ensuite au <a href="?dmmlearn_sync_groups=cleanup_users">nettoyage des membres</a>.</p>';
+        wp_die( $s );
+    }
+
+    // ── CLEANUP MEMBRES des groupes parents ───────────────────────────────
+    if ( 'cleanup_users' === $action ) {
+        $already_done = get_option( 'dmmlearn_cleanup_users_done' );
+        if ( $already_done ) {
+            wp_die( $css . '<p>⚠️ Déjà effectué le <strong>' . esc_html( $already_done ) . '</strong>. <a href="?dmmlearn_sync_groups=reset">Reset</a> pour relancer.</p>' );
+        }
+
+        set_time_limit( 0 );
+        $total_removed = 0;
+        $details       = [];
+
+        foreach ( array_keys( $parent_ids ) as $parent_id ) {
+            $parent_users = learndash_get_groups_user_ids( $parent_id );
+            if ( empty( $parent_users ) ) {
+                continue;
+            }
+            $removed = [];
+            foreach ( (array) $parent_users as $user_id ) {
+                ld_update_group_access( $user_id, $parent_id, true ); // true = remove
+                $u = get_userdata( $user_id );
+                $removed[] = $u ? $u->user_login . ' (ID:' . $user_id . ')' : 'ID:' . $user_id;
+                $total_removed++;
+            }
+            if ( $removed ) {
+                $details[] = [ 'parent' => get_the_title( $parent_id ) . ' (ID:' . $parent_id . ')', 'removed' => $removed ];
+            }
+        }
+
+        update_option( 'dmmlearn_cleanup_users_done', current_time( 'mysql' ) );
+
+        $s  = $css . '<h1>Nettoyage membres — Groupes parents</h1>';
+        $s .= '<p>Exécuté le <strong>' . current_time( 'mysql' ) . '</strong></p>';
+        $s .= '<table><tr><th>Groupes parents traités</th><td><span class="badge blue">' . count( $parent_ids ) . '</span></td></tr>';
+        $s .= '<tr><th>Membres retirés des groupes parents</th><td><span class="badge red">' . $total_removed . '</span></td></tr></table>';
+        foreach ( $details as $d ) {
+            $s .= '<h3>' . esc_html( $d['parent'] ) . '</h3><p>' . implode( ', ', array_map( 'esc_html', $d['removed'] ) ) . '</p>';
+        }
+        if ( ! $details ) {
+            $s .= '<p>Aucun membre à retirer — groupes parents déjà vides.</p>';
+        }
+        $s .= '<p>✅ <strong>Nettoyage terminé.</strong> Les apprenants restent dans leurs groupes enfants avec accès à leurs parcours.</p>';
+        wp_die( $s );
+    }
+
+    wp_die( $css . '<p>Action inconnue. Actions disponibles : <code>cleanup_courses</code>, <code>cleanup_users</code>, <code>reset</code>.</p>' );
+} );
 
 /**
  * Scripts d'administration groupes parent/enfant

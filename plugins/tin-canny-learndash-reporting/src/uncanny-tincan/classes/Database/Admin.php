@@ -253,7 +253,12 @@ WHERE {$where}";
 		$where = array( '1 = 1' );
 
 		if ( ! empty( $this->filters['group'] ) ) {
-			$where[] = "reporting.`group_id` = {$this->filters[ 'group' ]}";
+			// Agrégation groupe parent : inclure les statements des groupes enfants
+			$_xapi_gids = [ (int) $this->filters['group'] ];
+			foreach ( (array) learndash_get_group_children( (int) $this->filters['group'] ) as $_c ) {
+				$_xapi_gids[] = (int) $_c;
+			}
+			$where[] = 'reporting.`group_id` IN (' . implode( ',', $_xapi_gids ) . ')';
 		}
 
 		if ( ! empty( $this->filters['actor'] ) ) {
@@ -1133,7 +1138,12 @@ WHERE reporting.activity_name_hash = %s",
 		$where = array();
 
 		if ( ! empty( $this->filters['group'] ) ) {
-			$where[] = "reporting.`group_id` = {$this->filters[ 'group' ]}";
+			// Agrégation groupe parent : inclure les statements des groupes enfants
+			$_xapi_gids = [ (int) $this->filters['group'] ];
+			foreach ( (array) learndash_get_group_children( (int) $this->filters['group'] ) as $_c ) {
+				$_xapi_gids[] = (int) $_c;
+			}
+			$where[] = 'reporting.`group_id` IN (' . implode( ',', $_xapi_gids ) . ')';
 		}
 
 		if ( ! empty( $this->filters['actor'] ) ) {
@@ -1247,9 +1257,13 @@ WHERE reporting.activity_name_hash = %s",
 
 		$where = array();
 
-		// Group
+		// Group — Agrégation groupe parent : inclure les statements des groupes enfants
 		if ( ! empty( $this->filters['group'] ) ) {
-			$where[] = "reporting.`group_id` = " . intval( $this->filters['group'] );
+			$_xapi_gids = [ (int) $this->filters['group'] ];
+			foreach ( (array) learndash_get_group_children( (int) $this->filters['group'] ) as $_c ) {
+				$_xapi_gids[] = (int) $_c;
+			}
+			$where[] = 'reporting.`group_id` IN (' . implode( ',', $_xapi_gids ) . ')';
 		}
 
 		// Actor
