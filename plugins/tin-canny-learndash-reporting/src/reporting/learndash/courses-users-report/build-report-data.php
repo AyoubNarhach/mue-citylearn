@@ -1045,6 +1045,10 @@ public static function get_course_quiz_average( $course_id, $user_activities, $u
 		} else {
 			if ( 0 !== self::$isolated_group_id ) {
 				$groups_list[] = self::$isolated_group_id;
+				// Agrégation groupe parent : inclure les parcours des groupes enfants
+				foreach ( (array) learndash_get_group_children( self::$isolated_group_id ) as $_child_id ) {
+					$groups_list[] = (int) $_child_id;
+				}
 			} else {
 				$groups_list = UserData::get_administrators_group_ids();
 			}
