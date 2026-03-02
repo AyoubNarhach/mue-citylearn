@@ -6294,3 +6294,34 @@ add_action( 'wp_head', function () {
   <?php
 }, 100 );
 
+/**
+ * Groupes parent/enfant — inscription automatique au groupe parent
+ *
+ * Quand un apprenant est ajouté à un groupe enfant, il est automatiquement
+ * inscrit dans le groupe parent. Le groupe parent devient ainsi un groupe
+ * global qui agrège tous les apprenants de ses sous-groupes.
+ *
+ * Le drapeau statique évite toute récursion si le parent a lui-même un parent.
+ */
+add_action( 'ld_added_group_access', function( $user_id, $group_id ) {
+    static $running = [];
+
+    // Anti-boucle : on n'exécute qu'une fois par couple user/group
+    $key = $user_id . '_' . $group_id;
+    if ( ! empty( $running[ $key ] ) ) {
+        return;
+    }
+    $running[ $key ] = true;
+
+    // Vérifier si ce groupe est un enfant (a un parent)
+    $parent_id = wp_get_post_parent_id( $group_id );
+    if ( empty( $parent_id ) ) {
+        return; // groupe racine, rien à faire
+    }
+
+    // Ajouter l'utilisateur au groupe parent s'il n'y est pas déjà
+    if ( ! learndash_is_user_in_group( $user_id, $parent_id ) ) {
+        ld_update_group_access( $user_id, $parent_id );
+    }
+}, 10, 2 );
+
