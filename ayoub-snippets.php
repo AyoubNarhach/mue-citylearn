@@ -3279,6 +3279,7 @@ add_shortcode('ld_admin_certificates', function($atts){
 
   $selected_group_id  = isset($_GET['ld_group'])  ? absint($_GET['ld_group'])  : 0;
   $selected_course_id = isset($_GET['ld_course']) ? absint($_GET['ld_course']) : 0;
+  $search_query       = isset($_GET['ld_search']) ? sanitize_text_field(wp_unslash($_GET['ld_search'])) : '';
   if ($selected_group_id && !get_post($selected_group_id))   $selected_group_id = 0;
   if ($selected_course_id && !get_post($selected_course_id)) $selected_course_id = 0;
 
@@ -3431,15 +3432,24 @@ add_shortcode('ld_admin_certificates', function($atts){
         <?php endforeach; ?>
       </select>
 
+      <label for="ld_search">Rechercher :</label>
+      <input type="text" id="ld_search" name="ld_search" class="ld-cert-search-input"
+             value="<?php echo esc_attr($search_query); ?>"
+             placeholder="Nom, email ou intitulé…"
+             style="padding:.3rem .5rem; border:1px solid #ccc; border-radius:3px; min-width:200px;" />
+
       <?php
       // préserver autres paramètres
       foreach ($_GET as $k=>$v) {
-        if (in_array($k, ['ld_group','ld_course'], true)) continue;
+        if (in_array($k, ['ld_group','ld_course','ld_search'], true)) continue;
         if (is_array($v)) continue;
         echo '<input type="hidden" name="'.esc_attr($k).'" value="'.esc_attr($v).'">';
       }
       ?>
-      <noscript><button type="submit">Filtrer</button></noscript>
+      <button type="submit" class="button">Filtrer</button>
+      <?php if ($search_query || $selected_group_id || $selected_course_id): ?>
+        <a href="<?php echo esc_url(strtok($_SERVER['REQUEST_URI'], '?')); ?>" class="button" style="text-decoration:none;">Réinitialiser</a>
+      <?php endif; ?>
     </form>
 
     <!-- Barre d'actions : cachée tant qu'aucune sélection -->
@@ -3502,6 +3512,10 @@ add_shortcode('ld_admin_certificates', function($atts){
         foreach ($rows as $r):
           if ($selected_group_id && !in_array($selected_group_id, (array)$r['group_ids'], true)) continue;
           if ($selected_course_id && (int)$r['course_id'] !== (int)$selected_course_id) continue;
+          if ($search_query) {
+            $haystack = mb_strtolower($r['display'].' '.$r['email'].' '.$r['title'], 'UTF-8');
+            if (mb_strpos($haystack, mb_strtolower($search_query, 'UTF-8'), 0, 'UTF-8') === false) continue;
+          }
           $printed++;
           $glabels = array_map(function($gid) use ($groups_titles){
             return isset($groups_titles[$gid]) ? $groups_titles[$gid] : '#'.$gid;
@@ -3543,6 +3557,24 @@ add_shortcode('ld_admin_certificates', function($atts){
     const downloadBtn = root.querySelector('.ld-bulk-download');
     const ajaxUrl     = '<?php echo esc_js($ajax); ?>';
     const nonce       = '<?php echo esc_js($nonce); ?>';
+
+    // --- Recherche en temps réel ---
+    const searchInput = root.querySelector('.ld-cert-search-input');
+    if (searchInput) {
+      searchInput.addEventListener('input', function() {
+        const term = this.value.trim().toLowerCase();
+        const rows = Array.from(root.querySelectorAll('.ld-cert-table tbody tr'));
+        rows.forEach(function(row) {
+          if (row.cells.length <= 1) { row.style.display = ''; return; } // ligne vide / message
+          // Colonnes : 1=Utilisateur, 2=Email, 4=Intitulé (0-indexed)
+          const text = [row.cells[1], row.cells[2], row.cells[4]]
+            .map(function(c){ return c ? c.textContent.toLowerCase() : ''; })
+            .join(' ');
+          row.style.display = (!term || text.includes(term)) ? '' : 'none';
+        });
+        updateBulk();
+      });
+    }
 
     const getCbs = ()=> Array.from(root.querySelectorAll('.ld-cert-select'));
     const getSelected = ()=> getCbs().filter(cb=>cb.checked).map(cb=>cb.value);
