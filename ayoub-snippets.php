@@ -1373,11 +1373,27 @@ wp_send_json_success(['user_id' => (int)$user_id]);
       $role = $role_aliases[$role_raw] ?? sanitize_text_field($get('role') ?: 'subscriber');
       if (!in_array($role, ['subscriber', 'group_leader', 'lms_admin'], true)) $role = 'subscriber';
 
-      $username = sanitize_user($get('identifiant'), true);
+      // Règle 1 : si identifiant vide, le générer automatiquement depuis "Nom Prénom"
+      $username_raw = trim((string)$get('identifiant'));
+      if ($username_raw === '' && ($last !== '' || $first !== '')) {
+        $username_raw = trim($last . ' ' . $first);
+      }
+      $username = sanitize_user($username_raw, true);
       $password = trim((string)$get('mot_de_passe'));
 
       $date_start = ldua_normalize_date_input($get('date_debut'));
       $date_susp  = ldua_normalize_date_input($get('date_suspension'));
+
+      // Règle 2 : si date_suspension vide et date_debut renseignée, calculer date_debut + 1 mois
+      if ($date_susp === '' && $date_start !== '') {
+        try {
+          $dt = new DateTime($date_start);
+          $dt->modify('+1 month');
+          $date_susp = $dt->format('Y-m-d');
+        } catch (Exception $e) {
+          $date_susp = '';
+        }
+      }
 
       // Fusionner les 3 colonnes groupe et les 3 colonnes parcours
       $group_ids  = array_values(array_unique(array_filter(array_merge(
@@ -1395,15 +1411,17 @@ wp_send_json_success(['user_id' => (int)$user_id]);
 
       $is_new = false;
       if (!$user_id) {
+        // Fallback si username toujours vide (ni identifiant ni Nom/Prénom)
         if (!$username) {
-          $base = sanitize_user(str_replace(['@', '.'], ['_', '_'], $email), true);
-          $username = $base;
-          if (username_exists($username)) $username = $base . '_' . wp_generate_password(4, false, false);
-        } else {
-          if (username_exists($username)) {
-            $errors++;
-            $messages[] = "Ligne " . ($i + 1) . " : username déjà existant";
-            continue;
+          $username = sanitize_user(str_replace(['@', '.'], ['_', '_'], $email), true);
+        }
+        // Si le username est déjà pris, générer un variant unique (évite les erreurs)
+        if (username_exists($username)) {
+          $base   = $username;
+          $suffix = 2;
+          while (username_exists($username)) {
+            $username = $base . $suffix;
+            $suffix++;
           }
         }
 
