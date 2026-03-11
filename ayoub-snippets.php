@@ -1359,12 +1359,19 @@ wp_send_json_success(['user_id' => (int)$user_id]);
         return ($p >= 0 && isset($row[$p])) ? $row[$p] : '';
       };
 
-      $email = sanitize_email($get('email'));
+      $email_raw = trim((string)$get('email'));
+      // Ligne vide (email absent) → ignorer silencieusement, ce n'est pas une erreur
+      if ($email_raw === '') continue;
+
+      $email = sanitize_email($email_raw);
       if (!$email || !is_email($email)) {
         $errors++;
-        $messages[] = "Ligne " . ($i + 1) . " : email invalide";
+        $messages[] = "Ligne " . ($i + 1) . " : email invalide (" . esc_html($email_raw) . ")";
         continue;
       }
+
+      // Ignorer la ligne d'exemple du template (ne pas importer le placeholder)
+      if ($email === 'exemple@domaine.com') continue;
 
       $first    = sanitize_text_field($get('prenom'));
       $last     = sanitize_text_field($get('nom'));
@@ -1481,12 +1488,28 @@ wp_send_json_success(['user_id' => (int)$user_id]);
       if ($date_susp !== '') update_user_meta($user_id, LDUA_META_SUSPENSION, $date_susp);
       else delete_user_meta($user_id, LDUA_META_SUSPENSION);
 
-      // Affectations
+      // Affectations groupes
       if (!empty($group_ids)) {
         if ($role === 'group_leader') {
           ldua_assign_group_leader_to_groups($user_id, $group_ids);
         } else {
-          ldua_enroll_user_to_groups($user_id, $group_ids);
+          // Sync exact : lire les groupes réels depuis la meta WordPress
+          // (sans expansion hiérarchique LearnDash qui fausse les comparaisons)
+          $current_groups = [];
+          foreach ((array)get_user_meta($user_id) as $mk => $mv) {
+            if (strpos($mk, 'learndash_group_users_') === 0) {
+              $gid_meta = (int)substr($mk, strlen('learndash_group_users_'));
+              if ($gid_meta > 0) $current_groups[] = $gid_meta;
+            }
+          }
+          // Retirer les anciens groupes absents du nouvel import
+          foreach (array_diff($current_groups, $group_ids) as $gid) {
+            if (function_exists('ld_update_group_access')) ld_update_group_access($user_id, $gid, true);
+          }
+          // Ajouter les nouveaux groupes
+          foreach (array_diff($group_ids, $current_groups) as $gid) {
+            if (function_exists('ld_update_group_access')) ld_update_group_access($user_id, $gid, false);
+          }
         }
 
         // Auto cours du groupe pour apprenant
