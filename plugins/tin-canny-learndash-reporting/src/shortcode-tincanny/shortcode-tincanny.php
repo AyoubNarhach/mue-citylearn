@@ -1152,13 +1152,13 @@ class TinCannyShortcode {
 	public static function frontend_reports_access_check() {
 
 		if ( ! is_user_logged_in() ) {
-			echo esc_html__( 'You must be logged in to view this report.', 'uncanny-learndash-reporting' );
+			echo 'Vous devez être connecté pour consulter ce rapport.';
 
 			return apply_filters( 'uo_tincanny_reporting_access_check', false );
 		}
 
 		if ( ! current_user_can( apply_filters( 'uo_tincanny_reporting_capability', 'tincanny_reporting' ) ) ) {
-			echo esc_html__( 'You do not have access to this report', 'uncanny-learndash-reporting' );
+			echo 'Vous n'avez pas accès à ce rapport';
 
 			return apply_filters( 'uo_tincanny_reporting_access_check', false );
 		}
@@ -1173,13 +1173,13 @@ class TinCannyShortcode {
 	public static function options_menu_page_output() {
 
 //		if ( ! is_user_logged_in() ) {
-//			echo esc_html__( 'You must be logged in to view this report.', 'uncanny-learndash-reporting' );
+//			echo 'Vous devez être connecté pour consulter ce rapport.';
 //
 //			return;
 //		}
 //
 //		if ( ! current_user_can( apply_filters( 'uo_tincanny_reporting_capability', 'tincanny_reporting' ) ) ) {
-//			echo esc_html__( 'You do not have access to this report', 'uncanny-learndash-reporting' );
+//			echo 'Vous n'avez pas accès à ce rapport';
 //
 //			return;
 //		}
@@ -2011,7 +2011,7 @@ class TinCannyShortcode {
 				<?php } // foreach( $ld_groups ) ?>
 			</select>
 
-			<?php esc_html_e( 'Per Page', 'uncanny-learndash-reporting' ); ?>
+			<?php echo esc_html( 'Par page' ); ?>
 		</div>
 
 		<div id="tincan-filters-export">
@@ -2147,7 +2147,7 @@ class TinCannyShortcode {
 				?>
 
 				<div class="reporting-table-info">
-					<?php esc_html_e( 'To customize the columns that are displayed, use the Screen Options tab in the top right.', 'uncanny-learndash-reporting' ); ?>
+					<?php echo esc_html( 'Pour personnaliser les colonnes affichées, utilisez l'onglet Options de l'écran en haut à droite.' ); ?>
 				</div>
 
 				<?php
@@ -2196,7 +2196,7 @@ class TinCannyShortcode {
 				<?php } // foreach( $ld_groups ) ?>
 			</select>
 
-			<?php esc_html_e( 'Per Page', 'uncanny-learndash-reporting' ); ?>
+			<?php echo esc_html( 'Par page' ); ?>
 		</div>
 
 		<div id="tincan-filters-export">

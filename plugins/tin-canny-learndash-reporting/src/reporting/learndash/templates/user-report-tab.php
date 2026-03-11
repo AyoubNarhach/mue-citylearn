@@ -14,11 +14,11 @@ if ( ! defined( 'WPINC' ) ) {
 	<div id="reporting-user-navigation" class="reporting-breadcrumbs">
 		<ul class="reporting-breadcrumbs-items">
 			<li class="reporting-breadcrumbs-item reporting-breadcrumbs-item--guide">
-				<span><?php _e( 'Tin Canny Reports', 'uncanny-learndash-reporting' ); ?></span>
+				<span><?php echo 'Rapports Tin Canny'; ?></span>
 			</li>
 			<li id="user-navigate-link" class="reporting-breadcrumbs-item reporting-breadcrumbs-item--visible reporting-breadcrumbs-item--current">
 				<span>
-					<?php _e( 'User Report', 'uncanny-learndash-reporting' ); ?>
+					<?php echo 'Rapport utilisateur'; ?>
 				</span>
 			</li>
 			<li id="userCourseDisplayName" class="reporting-breadcrumbs-item"></li>
@@ -31,7 +31,7 @@ if ( ! defined( 'WPINC' ) ) {
 		<div class="reporting-metabox">
 
 	        <div class="reporting-dashboard-col-heading" id="usersOverviewTableHeading">
-	        	<?php esc_html_e( 'Users', 'uncanny-learndash-reporting' ); ?>
+	        	<?php echo esc_html( 'Utilisateurs' ); ?>
 	        </div>
 	        <div class="reporting-dashboard-col-content reporting-dashboard-col-content--no-padding">
 	            <table id="usersOverviewTable" class="display responsive reporting-table" width="100%">
@@ -41,7 +41,7 @@ if ( ! defined( 'WPINC' ) ) {
 								<div class="reporting-dashboard-status reporting-dashboard-status--loading">
 									<div class="reporting-dashboard-status__icon"></div>
 									<div class="reporting-dashboard-status__text">
-										<?php _e( 'Loading', 'uncanny-learndash-reporting' ); ?>
+										<?php echo 'Chargement'; ?>
 									</div>
 								</div>
 							</td>
@@ -56,7 +56,7 @@ if ( ! defined( 'WPINC' ) ) {
 		<div class="reporting-section" id="singleUserProfileContainer" style="display: none;">
 			<div class="reporting-metabox">
 				<div class="reporting-dashboard-col-heading" id="singleUserProfileHeading">
-					<?php esc_html_e( 'Profile', 'uncanny-learndash-reporting' ); ?>
+					<?php echo esc_html( 'Profil' ); ?>
 				</div>
 				<div class="reporting-dashboard-col-content reporting-dashboard-col-content--no-min-height">
 					<div class="reporting-user-card">
@@ -74,7 +74,7 @@ if ( ! defined( 'WPINC' ) ) {
 		<div class="reporting-section" id="userSingleOverviewContainer" style="display: none;">
 			<div class="reporting-metabox">
 		        <div class="reporting-dashboard-col-heading" id="usersSingleOverviewTableHeading">
-		        	<?php esc_html_e( 'Overview', 'uncanny-learndash-reporting' ); ?>
+		        	<?php echo esc_html( 'Vue d'ensemble' ); ?>
 		        </div>
 		        <div class="reporting-dashboard-col-content reporting-dashboard-col-content--no-padding reporting-dashboard-col-content--no-min-height">
 		        	<div class="reporting-metabox--hide-table-top reporting-metabox--table-one-result">
@@ -85,7 +85,7 @@ if ( ! defined( 'WPINC' ) ) {
 										<div class="reporting-dashboard-status reporting-dashboard-status--loading">
 											<div class="reporting-dashboard-status__icon"></div>
 											<div class="reporting-dashboard-status__text">
-												<?php _e( 'Loading', 'uncanny-learndash-reporting' ); ?>
+												<?php echo 'Chargement'; ?>
 											</div>
 										</div>
 									</td>
@@ -100,10 +100,10 @@ if ( ! defined( 'WPINC' ) ) {
 		<div class="reporting-section" id="userSingleCourseProgressSummaryContainer" style="display: none;">
 			<div class="reporting-metabox">
 				<div class="reporting-dashboard-col-heading" id="userSingleCourseStartedDate">
-					<?php esc_html_e( 'Start date', 'uncanny-learndash-reporting' ); ?>: <span id="courseStartedDateValue"></span>
+					<?php echo esc_html( 'Date de début' ); ?>: <span id="courseStartedDateValue"></span>
 				</div>
 		        <div class="reporting-dashboard-col-heading" id="userSingleCourseProgressSummaryTableHeading">
-		        	<?php esc_html_e( 'Progress Summary', 'uncanny-learndash-reporting' ); ?>
+		        	<?php echo esc_html( 'Résumé de progression' ); ?>
 		        </div>
 		        <div class="reporting-dashboard-col-content reporting-dashboard-col-content--no-padding reporting-dashboard-col-content--no-min-height">
 		        	<div class="reporting-metabox--hide-table-top reporting-metabox--table-one-result">
@@ -114,7 +114,7 @@ if ( ! defined( 'WPINC' ) ) {
 										<div class="reporting-dashboard-status reporting-dashboard-status--loading">
 											<div class="reporting-dashboard-status__icon"></div>
 											<div class="reporting-dashboard-status__text">
-												<?php _e( 'Loading', 'uncanny-learndash-reporting' ); ?>
+												<?php echo 'Chargement'; ?>
 											</div>
 										</div>
 									</td>
@@ -133,7 +133,7 @@ if ( ! defined( 'WPINC' ) ) {
 	        	<?php
 				echo esc_html(
 					/* Translators: 1:Course label*/
-					sprintf( __( "User's %1\$s List", 'uncanny-learndash-reporting' ), $template_data['labels']['course'] )
+					sprintf( 'Liste des %1 de l'apprenant',  )
 				);
 				?>
 	        </div>
@@ -145,7 +145,7 @@ if ( ! defined( 'WPINC' ) ) {
 								<div class="reporting-dashboard-status reporting-dashboard-status--loading">
 									<div class="reporting-dashboard-status__icon"></div>
 									<div class="reporting-dashboard-status__text">
-										<?php _e( 'Loading', 'uncanny-learndash-reporting' ); ?>
+										<?php echo 'Chargement'; ?>
 									</div>
 								</div>
 							</td>
@@ -176,7 +176,7 @@ if ( ! defined( 'WPINC' ) ) {
 					<?php $show_tin_can_menu = is_admin() || ( isset( $tincanny_settings['enableTinCanReportFrontEnd'] ) && 1 === (int) $tincanny_settings['enableTinCanReportFrontEnd'] ); ?>
 					<?php if ( $show_tin_can_menu ) { ?>
 						<li class="reporting-single-course-progress-tabs__item" <?php echo \uncanny_learndash_reporting\TinCannyShortcode::$tincan_show; ?> id="menuTinCan">
-							<?php _e( 'Tin Can', 'uncanny-learndash-reporting' ); ?>
+							<?php echo 'Tin Can'; ?>
 						</li>
 					<?php } ?>
 				</ul>
@@ -196,7 +196,7 @@ if ( ! defined( 'WPINC' ) ) {
 										<div class="reporting-dashboard-status reporting-dashboard-status--loading">
 											<div class="reporting-dashboard-status__icon"></div>
 											<div class="reporting-dashboard-status__text">
-												<?php _e( 'Loading', 'uncanny-learndash-reporting' ); ?>
+												<?php echo 'Chargement'; ?>
 											</div>
 										</div>
 									</td>
@@ -220,7 +220,7 @@ if ( ! defined( 'WPINC' ) ) {
 										<div class="reporting-dashboard-status reporting-dashboard-status--loading">
 											<div class="reporting-dashboard-status__icon"></div>
 											<div class="reporting-dashboard-status__text">
-												<?php _e( 'Loading', 'uncanny-learndash-reporting' ); ?>
+												<?php echo 'Chargement'; ?>
 											</div>
 										</div>
 									</td>
@@ -244,7 +244,7 @@ if ( ! defined( 'WPINC' ) ) {
 										<div class="reporting-dashboard-status reporting-dashboard-status--loading">
 											<div class="reporting-dashboard-status__icon"></div>
 											<div class="reporting-dashboard-status__text">
-												<?php _e( 'Loading', 'uncanny-learndash-reporting' ); ?>
+												<?php echo 'Chargement'; ?>
 											</div>
 										</div>
 									</td>
@@ -268,7 +268,7 @@ if ( ! defined( 'WPINC' ) ) {
 										<div class="reporting-dashboard-status reporting-dashboard-status--loading">
 											<div class="reporting-dashboard-status__icon"></div>
 											<div class="reporting-dashboard-status__text">
-												<?php _e( 'Loading', 'uncanny-learndash-reporting' ); ?>
+												<?php echo 'Chargement'; ?>
 											</div>
 										</div>
 									</td>
@@ -282,7 +282,7 @@ if ( ! defined( 'WPINC' ) ) {
 			<div id="userSingleCourseTinCanContainer" style="display: none;">
 				<div class="reporting-metabox">
 			        <div class="reporting-dashboard-col-heading" id="userSingleCourseTinCanTableHeading">
-			        	<?php _e( 'Tin Can', 'uncanny-learndash-reporting' ); ?>
+			        	<?php echo 'Tin Can'; ?>
 			        </div>
 			        <div class="reporting-dashboard-col-content reporting-dashboard-col-content--no-padding reporting-dashboard-col-content--no-min-height">
 				        <table id="userSingleCourseTinCanTable" class="display responsive reporting-table reporting-table-selectable" width="100%">
@@ -292,7 +292,7 @@ if ( ! defined( 'WPINC' ) ) {
 										<div class="reporting-dashboard-status reporting-dashboard-status--loading">
 											<div class="reporting-dashboard-status__icon"></div>
 											<div class="reporting-dashboard-status__text">
-												<?php _e( 'Loading', 'uncanny-learndash-reporting' ); ?>
+												<?php echo 'Chargement'; ?>
 											</div>
 										</div>
 									</td>

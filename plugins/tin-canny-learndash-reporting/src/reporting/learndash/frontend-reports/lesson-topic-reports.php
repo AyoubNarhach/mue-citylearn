@@ -208,17 +208,17 @@ class LessonTopicReports extends Config {
 
 		// Build the columns array.
 		$columns = array(
-			'username'       => __( 'Username', 'uncanny-learndash-reporting' ),
-			'first_name'     => __( 'First Name', 'uncanny-learndash-reporting' ),
-			'last_name'      => __( 'Last Name', 'uncanny-learndash-reporting' ),
-			'email'          => __( 'Email', 'uncanny-learndash-reporting' ),
-			'step_status'    => __( 'Status', 'uncanny-learndash-reporting' ),
-			'completed_date' => __( 'Completed', 'uncanny-learndash-reporting' ),
+			'username'       => 'Identifiant',
+			'first_name'     => 'Prénom',
+			'last_name'      => 'Nom de famille',
+			'email'          => 'E-mail',
+			'step_status'    => 'Statut',
+			'completed_date' => 'Terminé',
 		);
 
 		// Check for active Toolkit Pro Course Timer module.
 		if ( $this->is_toolkit_pro_timer_activated() ) {
-			$columns['time'] = __( 'Time', 'uncanny-learndash-reporting' );
+			$columns['time'] = 'Temps';
 		}
 
 		$group_label   = \LearnDash_Custom_Label::get_label( 'group' );
@@ -236,59 +236,45 @@ class LessonTopicReports extends Config {
 			'currentUser'      => get_current_user_id(),
 			'i18n'             => array(
 				'table_language'     => array(
-					'info'              => sprintf(
-					/* translators: %1$s is the start number, %2$s is the end number, and %3$s is the total number of entries */
-						_x( 'Showing %1$s to %2$s of %3$s entries', '%1$s is the start number, %2$s is the end number, and %3$s is the total number of entries', 'uncanny-learndash-reporting' ),
-						'_START_',
-						'_END_',
-						'_TOTAL_'
-					),
-					'infoEmpty'         => __( 'Showing 0 to 0 of 0 entries', 'uncanny-learndash-reporting' ),
-					'infoFiltered'      => sprintf(
-					/* translators: %s is a number */
-						_x( '(filtered from %s total entries)', '%s is a number', 'uncanny-learndash-reporting' ),
-						'_MAX_'
-					),
-					'lengthMenu'        => sprintf(
-					/* translators: %s is a number */
-						_x( 'Show %s entries', 'Table', 'uncanny-learndash-reporting' ),
-						'_MENU_'
-					),
-					'loadingRecords'    => __( 'Loading...', 'uncanny-learndash-reporting' ),
-					'processing'        => __( 'Processing...', 'uncanny-learndash-reporting' ),
-					'searchPlaceholder' => __( 'Search by username, name, email or status', 'uncanny-learndash-reporting' ),
-					'zeroRecords'       => __( 'No matching records found', 'uncanny-learndash-reporting' ),
+					'info'              => 'Affichage de _START_ à _END_ sur _TOTAL_ entrées',
+					'infoEmpty'         => 'Affichage de 0 à 0 sur 0 entrée',
+					'infoFiltered'      => '(filtré sur _MAX_ entrées au total)',
+					'lengthMenu'        => 'Afficher _MENU_ entrées',
+					'loadingRecords'    => 'Chargement...',
+					'processing'        => 'Traitement...',
+					'searchPlaceholder' => 'Rechercher par identifiant, nom, e-mail ou statut',
+					'zeroRecords'       => 'Aucun résultat trouvé',
 					'paginate'          => array(
-						'first'    => __( 'First', 'uncanny-learndash-reporting' ),
-						'last'     => __( 'Last', 'uncanny-learndash-reporting' ),
-						'next'     => __( 'Next', 'uncanny-learndash-reporting' ),
-						'previous' => __( 'Previous', 'uncanny-learndash-reporting' ),
+						'first'    => 'Premier',
+						'last'     => 'Dernier',
+						'next'     => 'Suivant',
+						'previous' => 'Précédent',
 					),
 					'aria'              => array(
-						'sortAscending'  => sprintf( ': %s', __( 'activate to sort column ascending', 'uncanny-learndash-reporting' ) ),
-						'sortDescending' => sprintf( ': %s', __( 'activate to sort column descending', 'uncanny-learndash-reporting' ) ),
+						'sortAscending'  => sprintf( ': %s', 'activer pour trier par ordre croissant' ),
+						'sortDescending' => sprintf( ': %s', 'activer pour trier par ordre décroissant' ),
 					),
 				),
 				'buttons'            => array(
-					'csv'         => __( 'CSV', 'uncanny-learndash-reporting' ),
-					'exportCSV'   => __( 'CSV export', 'uncanny-learndash-reporting' ),
-					'excel'       => __( 'Excel', 'uncanny-learndash-reporting' ),
-					'exportExcel' => __( 'Excel export', 'uncanny-learndash-reporting' ),
+					'csv'         => 'CSV',
+					'exportCSV'   => 'Export CSV',
+					'excel'       => 'Excel',
+					'exportExcel' => 'Export Excel',
 				),
 				'status'             => array(
-					'completed'  => __( 'Completed', 'uncanny-learndash-reporting' ),
-					'incomplete' => __( 'Incomplete', 'uncanny-learndash-reporting' ),
+					'completed'  => 'Terminé',
+					'incomplete' => 'Incomplet',
 				),
 				'filters'            => array(
 					'course' => array(
 						'default' => sprintf(
 						/* translators: %s is the course label */
-							__( 'Select a %s', 'uncanny-learndash-reporting' ),
+							'Sélectionner un(e) %s',
 							strtolower( $course_label )
 						),
 						'group'   => sprintf(
 						/* translators: %1$s is the group label, %2$s is the courses label */
-							__( 'Selected %1$s has no %2$s.', 'uncanny-learndash-reporting' ),
+							'Le/la %1 sélectionné(e) n'a aucune %2.',
 							$group_label,
 							strtolower( $courses_label )
 						),
@@ -296,12 +282,12 @@ class LessonTopicReports extends Config {
 					'lesson' => array(
 						'default' => sprintf(
 						/* translators: %s is the lesson label */
-							__( 'Select a %s', 'uncanny-learndash-reporting' ),
+							'Sélectionner un(e) %s',
 							strtolower( $lesson_label )
 						),
 						'course'  => sprintf(
 						/* translators: %1$s is the course label, %2$s is the lessons label */
-							__( 'The selected %1$s has no %2$s.', 'uncanny-learndash-reporting' ),
+							'La %1 sélectionnée n'a aucun(e) %2.',
 							strtolower( $course_label ),
 							strtolower( $lessons_label )
 						),
@@ -309,12 +295,12 @@ class LessonTopicReports extends Config {
 					'topic'  => array(
 						'default' => sprintf(
 						/* translators: %s is the topic label */
-							__( 'Select a %s', 'uncanny-learndash-reporting' ),
+							'Sélectionner un(e) %s',
 							strtolower( $topic_label )
 						),
 						'course'  => sprintf(
 						/* translators: %1$s is the course label, %2$s is the topics label */
-							__( 'The selected %1$s has no %2$s.', 'uncanny-learndash-reporting' ),
+							'La %1 sélectionnée n'a aucun(e) %2.',
 							strtolower( $course_label ),
 							strtolower( $topics_label )
 						),
@@ -324,44 +310,44 @@ class LessonTopicReports extends Config {
 					'defaults'  => array(
 						'lesson' => sprintf(
 						/* translators: %1$s is the course label, %2$s is the lesson label */
-							__( 'Select a %1$s and %2$s for results', 'uncanny-learndash-reporting' ),
+							'Sélectionner une %1 et un(e) %2 pour voir les résultats',
 							$course_label,
 							$lesson_label
 						),
 						'topic'  => sprintf(
 						/* translators: %1$s is the course label, %2$s is the topic label */
-							__( 'Select a %1$s and %2$s for results', 'uncanny-learndash-reporting' ),
+							'Sélectionner une %1 et un(e) %2 pour voir les résultats',
 							$course_label,
 							$topic_label
 						),
 					),
 					'course'    => sprintf(
 					/* translators: %1$s is the courses label, %2$s is the group label */
-						__( 'There are no %1$s associated with the selected %2$s.', 'uncanny-learndash-reporting' ),
+						'Aucun(e) %1 n'est associé(e) au/à la %2 sélectionné(e).',
 						strtolower( $courses_label ),
 						strtolower( $group_label )
 					),
 					'lesson'    => sprintf(
 					/* translators: %1$s is the lessons label, %2$s is the course label */
-						__( 'There are no %1$s associated with the selected %2$s.', 'uncanny-learndash-reporting' ),
+						'Aucun(e) %1 n'est associé(e) au/à la %2 sélectionné(e).',
 						strtolower( $lessons_label ),
 						strtolower( $course_label )
 					),
 					'topic'     => sprintf(
 					/* translators: %1$s is the topics label, %2$s is the course label */
-						__( 'There are no %1$s associated with the selected %2$s.', 'uncanny-learndash-reporting' ),
+						'Aucun(e) %1 n'est associé(e) au/à la %2 sélectionné(e).',
 						strtolower( $topics_label ),
 						strtolower( $course_label )
 					),
 					'noResults' => sprintf(
 					/* translators: %s is the course label */
-						__( 'There are no students enrolled in the selected %s.', 'uncanny-learndash-reporting' ),
+						'Aucun apprenant n'est inscrit dans la %s sélectionnée.',
 						strtolower( $course_label )
 					),
 				),
 				'customColumnLabels' => array(
-					'customizeColumns'     => __( 'Customize columns', 'uncanny-learndash-reporting' ),
-					'hideCustomizeColumns' => __( 'Hide customize columns', 'uncanny-learndash-reporting' ),
+					'customizeColumns'     => 'Personnaliser les colonnes',
+					'hideCustomizeColumns' => 'Masquer la personnalisation des colonnes',
 				),
 			),
 			'columns'          => $columns,
@@ -380,7 +366,7 @@ class LessonTopicReports extends Config {
 		$html .= '<div class="reporting-status reporting-status--loading">';
 		$html .= '<div class="reporting-status__icon"></div>';
 		$html .= '<div class="reporting-status__text">';
-		$html .= __( 'Loading', 'uncanny-learndash-reporting' );
+		$html .= 'Chargement';
 		$html .= '</div>';
 		$html .= '</div>';
 		$html .= '</div>';
@@ -478,7 +464,7 @@ class LessonTopicReports extends Config {
 			}
 		}
 
-		return new \WP_Error( 'rest_forbidden', esc_html__( 'You must be a Group Leader or Administrator with access to at least one group to use this report.', 'uncanny-learndash-reporting' ) );
+		return new \WP_Error( 'rest_forbidden', 'Vous devez être responsable de groupe ou administrateur avec accès à au moins un groupe pour utiliser ce rapport.' );
 	}
 
 	/**

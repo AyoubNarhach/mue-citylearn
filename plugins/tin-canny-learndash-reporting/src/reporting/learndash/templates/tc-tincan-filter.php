@@ -19,7 +19,7 @@ $tc_filter_date_range_last = ultc_get_filter_var( 'tc_filter_date_range_last', '
 	<form action="<?php echo esc_attr( remove_query_arg( 'paged' ) ); ?>" id="tincan-filters-top">
 		<div class="reporting-metabox">
 			<div class="reporting-dashboard-col-heading" id="coursesOverviewTableHeading">
-				<?php esc_html_e( 'Filters', 'uncanny-learndash-reporting' ); ?>
+				<?php echo esc_html( 'Filtres' ); ?>
 			</div>
 			<div class="reporting-dashboard-col-content">
 				<?php if ( is_admin() ) { ?>
@@ -33,7 +33,7 @@ $tc_filter_date_range_last = ultc_get_filter_var( 'tc_filter_date_range_last', '
 				<div class="reporting-tincan-filters-columns">
 					<div class="reporting-tincan-filters-col reporting-tincan-filters-col--1">
 						<div class="reporting-tincan-section__title">
-							<?php esc_html_e( 'User & Group', 'uncanny-learndash-reporting' ); ?>
+							<?php echo esc_html( 'Utilisateur & Groupe' ); ?>
 						</div>
 						<div class="reporting-tincan-section__content">
 							<div class="reporting-tincan-section__field">
@@ -45,7 +45,7 @@ $tc_filter_date_range_last = ultc_get_filter_var( 'tc_filter_date_range_last', '
 										echo esc_html(
 											sprintf(
 												/* translators: %s: Group label */
-												__( 'All %s', 'uncanny-learndash-reporting' ),
+												'Tous les %s',
 												\LearnDash_Custom_Label::get_label( 'groups' )
 											)
 										);
@@ -62,9 +62,9 @@ $tc_filter_date_range_last = ultc_get_filter_var( 'tc_filter_date_range_last', '
 							</div>
 
 							<div class="reporting-tincan-section__field">
-								<label for="tc_filter_user"><?php esc_html_e( 'User', 'uncanny-learndash-reporting' ); ?></label>
+								<label for="tc_filter_user"><?php echo esc_html( 'Utilisateur' ); ?></label>
 								<input name="tc_filter_user" id="tc_filter_user"
-									placeholder="<?php esc_html_e( 'User', 'uncanny-learndash-reporting' ); ?>"
+									placeholder="<?php echo esc_html( 'Utilisateur' ); ?>"
 									value="<?php echo esc_attr( ultc_get_filter_var( 'tc_filter_user', '' ) ); ?>"/>
 							</div>
 						</div>
@@ -73,7 +73,7 @@ $tc_filter_date_range_last = ultc_get_filter_var( 'tc_filter_date_range_last', '
 					<div class="reporting-tincan-filters-col reporting-tincan-filters-col--2">
 
 						<div class="reporting-tincan-section__title">
-							<?php esc_html_e( 'Content', 'uncanny-learndash-reporting' ); ?>
+							<?php echo esc_html( 'Contenu' ); ?>
 						</div>
 						<div class="reporting-tincan-section__content">
 							<div class="reporting-tincan-section__field">
@@ -84,7 +84,7 @@ $tc_filter_date_range_last = ultc_get_filter_var( 'tc_filter_date_range_last', '
 									echo esc_html(
 										sprintf(
 											/* translators: %s: Course label */
-											__( 'All %s', 'uncanny-learndash-reporting' ),
+											'Tous les %s',
 											\LearnDash_Custom_Label::get_label( 'courses' )
 										)
 									);
@@ -99,9 +99,9 @@ $tc_filter_date_range_last = ultc_get_filter_var( 'tc_filter_date_range_last', '
 								</select>
 							</div>
 							<div class="reporting-tincan-section__field">
-								<label for="tc_filter_module"><?php esc_html_e( 'Module', 'uncanny-learndash-reporting' ); ?></label>
+								<label for="tc_filter_module"><?php echo esc_html( 'Module' ); ?></label>
 								<select class="uo-admin-select" name="tc_filter_module" id="tc_filter_module">
-									<option value=""><?php esc_html_e( 'All Modules', 'uncanny-learndash-reporting' ); ?></option>
+									<option value=""><?php echo esc_html( 'Tous les modules' ); ?></option>
 									<?php self::$tincan_database->print_modules_form_from_url_parameter(); ?>
 								</select>
 							</div>
@@ -112,13 +112,13 @@ $tc_filter_date_range_last = ultc_get_filter_var( 'tc_filter_date_range_last', '
 					<div class="reporting-tincan-filters-col reporting-tincan-filters-col--3">
 
 						<div class="reporting-tincan-section__title">
-							<?php esc_html_e( 'Activity', 'uncanny-learndash-reporting' ); ?>
+							<?php echo esc_html( 'Activité' ); ?>
 						</div>
 						<div class="reporting-tincan-section__content">
 							<div class="reporting-tincan-section__field">
-								<label for="tc_filter_action"><?php esc_html_e( 'Action', 'uncanny-learndash-reporting' ); ?></label>
+								<label for="tc_filter_action"><?php echo esc_html( 'Action' ); ?></label>
 								<select class="uo-admin-select" name="tc_filter_action" id="tc_filter_action">
-									<option value=""><?php esc_html_e( 'All Actions', 'uncanny-learndash-reporting' ); ?></option>
+									<option value=""><?php echo esc_html( 'Toutes les actions' ); ?></option>
 									<?php foreach ( $ld_actions as $ld_action ) { ?>
 										<?php $action_selected = strtolower( ultc_get_filter_var( 'tc_filter_action', '' ) ) === $ld_action['verb'] ? ' selected="selected"' : ''; ?>
 										<option value="<?php echo esc_attr( $ld_action['verb'] ); ?>"<?php echo esc_attr( $action_selected ); ?>>
@@ -133,34 +133,34 @@ $tc_filter_date_range_last = ultc_get_filter_var( 'tc_filter_date_range_last', '
 
 					<div class="reporting-tincan-filters-col reporting-tincan-filters-col--4">
 						<div class="reporting-tincan-section__title">
-							<?php esc_html_e( 'Date Range', 'uncanny-learndash-reporting' ); ?>
+							<?php echo esc_html( 'Plage de dates' ); ?>
 						</div>
 						<div class="reporting-tincan-section__content">
 							<div class="reporting-tincan-section__field">
 								<label>
 									<input name="tc_filter_date_range" value="last"
 										type="radio" <?php echo esc_attr( empty( $tc_filter_date_range ) || 'last' === $tc_filter_date_range ? 'checked="checked"' : '' ); ?> />
-									<?php esc_html_e( 'View', 'uncanny-learndash-reporting' ); ?>
+									<?php echo esc_html( 'Voir' ); ?>
 								</label>
 
 								<select class="uo-admin-select" name="tc_filter_date_range_last" id="tc_filter_date_range_last">
 									<option value="all" <?php echo esc_attr( ! empty( $tc_filter_date_range ) && 'all' === $tc_filter_date_range_last ? 'selected="selected"' : '' ); ?>>
-										<?php esc_html_e( 'All Dates', 'uncanny-learndash-reporting' ); ?>
+										<?php echo esc_html( 'Toutes les dates' ); ?>
 									</option>
 									<option value="week" <?php echo esc_attr( ! empty( $tc_filter_date_range ) && 'week' === $tc_filter_date_range_last ? 'selected="selected"' : '' ); ?>>
-										<?php esc_html_e( 'Last Week', 'uncanny-learndash-reporting' ); ?>
+										<?php echo esc_html( 'La semaine dernière' ); ?>
 									</option>
 									<option value="month" <?php echo esc_attr( ! empty( $tc_filter_date_range ) && 'month' === $tc_filter_date_range_last ? 'selected="selected"' : '' ); ?>>
-										<?php esc_html_e( 'Last Month', 'uncanny-learndash-reporting' ); ?>
+										<?php echo esc_html( 'Le mois dernier' ); ?>
 									</option>
 									<option value="90days" <?php echo esc_attr( ! empty( $tc_filter_date_range ) && '90days' === $tc_filter_date_range_last ? 'selected="selected"' : '' ); ?>>
-										<?php esc_html_e( 'Last 90 Days', 'uncanny-learndash-reporting' ); ?>
+										<?php echo esc_html( 'Les 90 derniers jours' ); ?>
 									</option>
 									<option value="3months" <?php echo esc_attr( ! empty( $tc_filter_date_range ) && '3months' === $tc_filter_date_range_last ? 'selected="selected"' : '' ); ?>>
-										<?php esc_html_e( 'Last 3 Months', 'uncanny-learndash-reporting' ); ?>
+										<?php echo esc_html( 'Les 3 derniers mois' ); ?>
 									</option>
 									<option value="6months" <?php echo esc_attr( ! empty( $tc_filter_date_range ) && '6months' === $tc_filter_date_range_last ? 'selected="selected"' : '' ); ?>>
-										<?php esc_html_e( 'Last 6 Months', 'uncanny-learndash-reporting' ); ?>
+										<?php echo esc_html( 'Les 6 derniers mois' ); ?>
 									</option>
 								</select>
 							</div>
@@ -169,15 +169,15 @@ $tc_filter_date_range_last = ultc_get_filter_var( 'tc_filter_date_range_last', '
 								<label>
 									<input name="tc_filter_date_range" value="from"
 										type="radio" <?php echo esc_attr( ! empty( $tc_filter_date_range ) && 'from' === $tc_filter_date_range ? 'checked="checked"' : '' ); ?> />
-									<?php esc_html_e( 'From', 'uncanny-learndash-reporting' ); ?>
+									<?php echo esc_html( 'Du' ); ?>
 								</label>
 
 								<input class="datepicker" name="tc_filter_start"
-									placeholder="<?php esc_attr( esc_html_e( 'Start Date', 'uncanny-learndash-reporting' ) ); ?>"
+									placeholder="<?php esc_attr( echo esc_html( 'Date de début' ) ); ?>"
 									value="<?php echo esc_attr( ultc_get_filter_var( 'tc_filter_start', '' ) ); ?>"/>
 
 								<input class="datepicker" name="tc_filter_end"
-									placeholder="<?php esc_attr( esc_html_e( 'End Date', 'uncanny-learndash-reporting' ) ); ?>"
+									placeholder="<?php esc_attr( echo esc_html( 'Date de fin' ) ); ?>"
 									value="<?php echo esc_attr( ultc_get_filter_var( 'tc_filter_end', '' ) ); ?>"/>
 
 							</div>
@@ -189,7 +189,7 @@ $tc_filter_date_range_last = ultc_get_filter_var( 'tc_filter_date_range_last', '
 				<div class="reporting-tincan-footer">
 					<?php
 					submit_button(
-						__( 'Search', 'uncanny-learndash-reporting' ),
+						'Rechercher',
 						'primary',
 						'',
 						false,
@@ -227,7 +227,7 @@ $tc_filter_date_range_last = ultc_get_filter_var( 'tc_filter_date_range_last', '
 
 					?>
 					<a href="<?php echo esc_attr( $reset_link ); ?>"
-						class="tclr-reporting-button"><?php esc_html_e( 'Reset', 'uncanny-learndash-reporting' ); ?></a>
+						class="tclr-reporting-button"><?php echo esc_html( 'Réinitialiser' ); ?></a>
 				</div>
 			</div>
 		</div>
