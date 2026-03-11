@@ -1359,10 +1359,14 @@ wp_send_json_success(['user_id' => (int)$user_id]);
         return ($p >= 0 && isset($row[$p])) ? $row[$p] : '';
       };
 
-      $email = sanitize_email($get('email'));
+      $email_raw = trim((string)$get('email'));
+      // Ligne vide (email absent) → ignorer silencieusement, ce n'est pas une erreur
+      if ($email_raw === '') continue;
+
+      $email = sanitize_email($email_raw);
       if (!$email || !is_email($email)) {
         $errors++;
-        $messages[] = "Ligne " . ($i + 1) . " : email invalide";
+        $messages[] = "Ligne " . ($i + 1) . " : email invalide (" . esc_html($email_raw) . ")";
         continue;
       }
 
