@@ -1,0 +1,1505 @@
+# French (France) Translation for Tin Canny Reporting for LearnDash
+# Copyright (C) 2025 Uncanny Owl
+# This file is distributed under the GPLv3.
+msgid ""
+msgstr ""
+"Project-Id-Version: Tin Canny Reporting for LearnDash 5.1.1\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/tin-canny-learndash-reporting\n"
+"POT-Creation-Date: 2025-10-23T22:00:13+00:00\n"
+"PO-Revision-Date: 2026-03-11 00:00+0000\n"
+"Last-Translator: Traduction automatique\n"
+"Language-Team: French (France)\n"
+"Language: fr_FR\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+"X-Generator: Manual\n"
+"X-Domain: uncanny-learndash-reporting\n"
+
+# ============================================================
+# PRIORITÉ 1 — Chaînes visibles par les apprenants (frontend)
+# ============================================================
+
+#. Plugin Name of the plugin
+msgid "Tin Canny Reporting for LearnDash"
+msgstr "Tin Canny Reporting pour LearnDash"
+
+# --- Statuts ---
+msgid "In Progress"
+msgstr "En cours"
+
+msgid "Completed"
+msgstr "Terminé"
+
+msgid "Not Started"
+msgstr "Non commencé"
+
+msgid "Not Complete"
+msgstr "Non terminé"
+
+msgid "Not Completed"
+msgstr "Non terminé"
+
+msgid "Incomplete"
+msgstr "Incomplet"
+
+msgid "No Data"
+msgstr "Aucune donnée"
+
+msgid "Approved"
+msgstr "Approuvé"
+
+msgid "Not Approved"
+msgstr "Non approuvé"
+
+msgid "Not Attempted"
+msgstr "Non tenté"
+
+msgid "Correct"
+msgstr "Correct"
+
+msgid "Incorrect"
+msgstr "Incorrect"
+
+msgid "Success"
+msgstr "Réussi"
+
+# --- Navigation tableau ---
+msgid "First"
+msgstr "Premier"
+
+msgid "Last"
+msgstr "Dernier"
+
+msgid "Next"
+msgstr "Suivant"
+
+msgid "Previous"
+msgstr "Précédent"
+
+msgid "Loading..."
+msgstr "Chargement..."
+
+msgid "Loading"
+msgstr "Chargement"
+
+msgid "Processing..."
+msgstr "Traitement..."
+
+msgid "Search:"
+msgstr "Rechercher :"
+
+msgid "Search..."
+msgstr "Rechercher..."
+
+msgid "Search"
+msgstr "Rechercher"
+
+msgid "No matching records found"
+msgstr "Aucun résultat trouvé"
+
+msgid "No data available in table"
+msgstr "Aucune donnée disponible dans le tableau"
+
+msgid "Showing 0 to 0 of 0 entries"
+msgstr "Affichage de 0 à 0 sur 0 entrée"
+
+msgid "Showing _START_ to _END_ of _TOTAL_ entries"
+msgstr "Affichage de _START_ à _END_ sur _TOTAL_ entrées"
+
+msgid "Show _MENU_ entries"
+msgstr "Afficher _MENU_ entrées"
+
+msgid "(filtered from _MAX_ total entries)"
+msgstr "(filtré sur _MAX_ entrées au total)"
+
+#. translators: %s is a number
+msgctxt "Table"
+msgid "Show %s entries"
+msgstr "Afficher %s entrées"
+
+#. translators: %1$s: start, %2$s: end, %3$s: total
+msgctxt "%1$s is the start number, %2$s is the end number, and %3$s is the total number of entries"
+msgid "Showing %1$s to %2$s of %3$s entries"
+msgstr "Affichage de %1$s à %2$s sur %3$s entrées"
+
+#. translators: %s is a number
+msgctxt "%s is a number"
+msgid "(filtered from %s total entries)"
+msgstr "(filtré sur %s entrées au total)"
+
+msgid ": activate to sort column ascending"
+msgstr ": activer pour trier la colonne par ordre croissant"
+
+msgid ": activate to sort column descending"
+msgstr ": activer pour trier la colonne par ordre décroissant"
+
+msgid "activate to sort column ascending"
+msgstr "activer pour trier par ordre croissant"
+
+msgid "activate to sort column descending"
+msgstr "activer pour trier par ordre décroissant"
+
+#. Table context
+msgctxt "Table"
+msgid "Processing..."
+msgstr "Traitement..."
+
+msgctxt "Table"
+msgid "Search"
+msgstr "Rechercher"
+
+msgctxt "Table"
+msgid "Showing 0 to 0 of 0 entries"
+msgstr "Affichage de 0 à 0 sur 0 entrée"
+
+#. translators: %1$s and %2$s are numbers
+msgctxt "Table"
+msgid "Showing page %1$s of %2$s"
+msgstr "Page %1$s sur %2$s"
+
+msgctxt "Table"
+msgid "No matching records found"
+msgstr "Aucun résultat trouvé"
+
+msgctxt "Table"
+msgid "No data available in table"
+msgstr "Aucune donnée disponible dans le tableau"
+
+msgctxt "Table"
+msgid "First"
+msgstr "Premier"
+
+msgctxt "Table"
+msgid "Previous"
+msgstr "Précédent"
+
+msgctxt "Table"
+msgid "Next"
+msgstr "Suivant"
+
+msgctxt "Table"
+msgid "Last"
+msgstr "Dernier"
+
+msgctxt "Table"
+msgid ": activate to sort column ascending"
+msgstr ": activer pour trier par ordre croissant"
+
+msgctxt "Table"
+msgid ": activate to sort column descending"
+msgstr ": activer pour trier par ordre décroissant"
+
+#. Table export buttons
+msgctxt "Table"
+msgid "CSV export"
+msgstr "Export CSV"
+
+msgctxt "Table"
+msgid "PDF export"
+msgstr "Export PDF"
+
+msgid "CSV export"
+msgstr "Export CSV"
+
+msgid "Excel export"
+msgstr "Export Excel"
+
+msgid "CSV Export"
+msgstr "Export CSV"
+
+msgid "Excel Export"
+msgstr "Export Excel"
+
+msgid "CSV"
+msgstr "CSV"
+
+msgid "Excel"
+msgstr "Excel"
+
+msgid "PDF"
+msgstr "PDF"
+
+msgid "Export To CSV"
+msgstr "Exporter en CSV"
+
+msgid "Per Page"
+msgstr "Par page"
+
+# --- En-têtes de colonnes ---
+msgid "Name"
+msgstr "Nom"
+
+msgid "First Name"
+msgstr "Prénom"
+
+msgid "Last Name"
+msgstr "Nom de famille"
+
+msgid "Username"
+msgstr "Identifiant"
+
+msgid "Email Address"
+msgstr "Adresse e-mail"
+
+msgid "Email"
+msgstr "E-mail"
+
+msgid "Status"
+msgstr "Statut"
+
+msgid "Date"
+msgstr "Date"
+
+msgid "Date Completed"
+msgstr "Date de complétion"
+
+msgid "Completion Date"
+msgstr "Date de complétion"
+
+msgid "Time to Complete"
+msgstr "Temps pour compléter"
+
+msgid "Time Spent"
+msgstr "Temps passé"
+
+msgid "Avg Time to Complete"
+msgstr "Temps moyen de complétion"
+
+msgid "Avg Time Spent"
+msgstr "Temps moyen passé"
+
+msgid "Average Time to Complete"
+msgstr "Temps moyen pour compléter"
+
+msgid "Average "
+msgstr "Moyenne "
+
+msgid "% Complete"
+msgstr "% Complété"
+
+msgid "Score"
+msgstr "Score"
+
+msgid "Certificate Link"
+msgstr "Lien certificat"
+
+msgid "Users Enrolled"
+msgstr "Apprenants inscrits"
+
+msgid "Enrolled"
+msgstr "Inscrit"
+
+msgid "Enrolled Users"
+msgstr "Apprenants inscrits"
+
+msgid "Course Enrolled"
+msgstr "Formation inscrite"
+
+msgid "Module"
+msgstr "Module"
+
+msgid "Action"
+msgstr "Action"
+
+msgid "Target"
+msgstr "Cible"
+
+msgid "Result"
+msgstr "Résultat"
+
+msgid "Activity"
+msgstr "Activité"
+
+msgid "Detailed Report"
+msgstr "Rapport détaillé"
+
+msgid "Detailed report"
+msgstr "Rapport détaillé"
+
+msgid "Assignment Name"
+msgstr "Nom du devoir"
+
+msgid "Approval"
+msgstr "Approbation"
+
+msgid "Submitted On"
+msgstr "Soumis le"
+
+msgid "Time"
+msgstr "Temps"
+
+msgid "Order"
+msgstr "Ordre"
+
+msgid "ID"
+msgstr "ID"
+
+msgid "Date Time"
+msgstr "Date et heure"
+
+msgid "Choices"
+msgstr "Choix"
+
+msgid "Correct Response"
+msgstr "Réponse correcte"
+
+msgid "User Response"
+msgstr "Réponse de l'apprenant"
+
+# --- Chaînes de navigation / vue ---
+msgid " Summary"
+msgstr " Résumé"
+
+msgid " Overview"
+msgstr " Vue d'ensemble"
+
+msgid "< Users Overview"
+msgstr "< Vue d'ensemble des utilisateurs"
+
+msgid "< User Overview"
+msgstr "< Vue d'ensemble de l'utilisateur"
+
+msgid "< User's "
+msgstr "< "
+
+msgid "Overview"
+msgstr "Vue d'ensemble"
+
+msgid "Profile"
+msgstr "Profil"
+
+msgid "Progress Summary"
+msgstr "Résumé de progression"
+
+msgid "Start date"
+msgstr "Date de début"
+
+msgid "View"
+msgstr "Voir"
+
+msgid "Page"
+msgstr "Page"
+
+msgid "All"
+msgstr "Tous"
+
+msgid "Filter"
+msgstr "Filtrer"
+
+msgid "Filters"
+msgstr "Filtres"
+
+msgid "Reset"
+msgstr "Réinitialiser"
+
+msgid "Group"
+msgstr "Groupe"
+
+msgid "User"
+msgstr "Utilisateur"
+
+msgid "Users"
+msgstr "Utilisateurs"
+
+msgid "All Users"
+msgstr "Tous les utilisateurs"
+
+msgid "Content"
+msgstr "Contenu"
+
+msgid "Course"
+msgstr "Formation"
+
+msgid "Quiz"
+msgstr "Quiz"
+
+msgid "Question"
+msgstr "Question"
+
+#. Reporting tab context
+msgctxt "Reporting tab"
+msgid "Course"
+msgstr "Formation"
+
+# --- Étiquettes de rapport ---
+msgid "Tin Canny Reports"
+msgstr "Rapports Tin Canny"
+
+#. translators: %s is the "Course" label
+msgctxt "%s is the \"Course\" label"
+msgid "%s Report"
+msgstr "Rapport %s"
+
+#. translators: %s is the "Course" label
+msgctxt "%s is the \"Course\" label"
+msgid "%s Overview"
+msgstr "Vue d'ensemble %s"
+
+#. translators: %s is the "Course" label
+msgctxt "%s is the \"Course\" label"
+msgid "%s Status"
+msgstr "Statut %s"
+
+#. translators: %s is the "Course" label
+msgctxt "%s is the \"Course\" label"
+msgid "Select a %s"
+msgstr "Sélectionner une %s"
+
+#. translators: %s is the "Courses" label
+msgctxt "%s is the \"Courses\" label"
+msgid "No %s available"
+msgstr "Aucune %s disponible"
+
+#. translators: 1:Course label
+msgid "%1$s Completions"
+msgstr "Complétions %1$s"
+
+#. translators: 1:Course label
+msgid "User's %1$s List"
+msgstr "Liste des %1$s de l'utilisateur"
+
+msgid "User Report"
+msgstr "Rapport utilisateur"
+
+msgid "Tin Can Report"
+msgstr "Rapport Tin Can"
+
+msgid "xAPI Quiz Report"
+msgstr "Rapport Quiz xAPI"
+
+msgid "Tin Can Data"
+msgstr "Données Tin Can"
+
+msgid "xAPI Quiz Data"
+msgstr "Données Quiz xAPI"
+
+# --- Vue d'ensemble ---
+msgid "Recent Activities"
+msgstr "Activités récentes"
+
+msgid "Reports"
+msgstr "Rapports"
+
+#. translators: %s is the "Courses" label
+msgctxt "%s is the \"Courses\" label"
+msgid "Most Completed %s"
+msgstr "%s les plus complétées"
+
+msgid "A summary-level overview of LearnDash courses and user progress"
+msgstr "Vue d'ensemble des formations LearnDash et de la progression des apprenants"
+
+msgid "Monitor progress for individual users enrolled in LearnDash courses"
+msgstr "Suivre la progression des apprenants inscrits aux formations LearnDash"
+
+msgid "Detailed records of user activity in H5P and uploaded modules"
+msgstr "Enregistrements détaillés de l'activité des apprenants dans H5P et les modules importés"
+
+msgid "No completions registered"
+msgstr "Aucune complétion enregistrée"
+
+msgid "No activity registered"
+msgstr "Aucune activité enregistrée"
+
+msgid "No enrolled users"
+msgstr "Aucun apprenant inscrit"
+
+#. translators: %s is the "Courses" label
+msgctxt "%s is the \"Courses\" label"
+msgid "See all %s"
+msgstr "Voir toutes les %s"
+
+#. translators: %s is the user ID
+msgid "ID: %s"
+msgstr "ID : %s"
+
+#. translators: %s is the "Courses" label
+msgctxt "%s is the \"Courses\" label"
+msgid "%s Enrolled"
+msgstr "%s inscrites"
+
+#. translators: %s is the "Lesson" label
+msgctxt "%s is the \"Lesson\" label"
+msgid "%s Name"
+msgstr "Nom du/de la %s"
+
+#. translators: %s is the "Topic" label
+msgctxt "%s is the \"Topic\" label"
+msgid "%s Name"
+msgstr "Nom du/de la %s"
+
+#. translators: %s is the "Quiz" label
+msgctxt "%s is the \"Quiz\" label"
+msgid "%s Name"
+msgstr "Nom du/de la %s"
+
+msgid "Details"
+msgstr "Détails"
+
+msgid "See details"
+msgstr "Voir les détails"
+
+msgid "Customize columns"
+msgstr "Personnaliser les colonnes"
+
+msgid "Hide customize columns"
+msgstr "Masquer la personnalisation des colonnes"
+
+msgid "Show all"
+msgstr "Tout afficher"
+
+#. translators: %s is the quiz label
+msgctxt "%s is the \"Quiz\" label"
+msgid "Avg %s Score"
+msgstr "Score moyen %s"
+
+#. translators: %s is the "Course" label
+msgctxt "%s is the \"Course\" label"
+msgid "%s Average"
+msgstr "Moyenne %s"
+
+#. translators: %s is the "Courses" label
+msgctxt "%s is the \"Courses\" label"
+msgid "%s Overview"
+msgstr "Vue d'ensemble %s"
+
+#. translators: %s is the number of completions
+msgctxt "%s is a number"
+msgid "%s completion(s)"
+msgstr "%s complétion(s)"
+
+#. translators: %s is the number of statements
+msgctxt "%s is a number"
+msgid "%s statement(s)"
+msgstr "%s déclaration(s)"
+
+#. translators: %s is the "Lesson" label
+msgid "Associated %s"
+msgstr "%s associé(e)"
+
+# --- Filtres de date ---
+msgid "Date Range"
+msgstr "Plage de dates"
+
+msgid "All Dates"
+msgstr "Toutes les dates"
+
+msgid "Last Week"
+msgstr "La semaine dernière"
+
+msgid "Last Month"
+msgstr "Le mois dernier"
+
+msgid "Last 30 Days"
+msgstr "Les 30 derniers jours"
+
+msgid "Last 90 Days"
+msgstr "Les 90 derniers jours"
+
+msgid "Last 3 Months"
+msgstr "Les 3 derniers mois"
+
+msgid "Last 6 Months"
+msgstr "Les 6 derniers mois"
+
+msgid "Last 1 Year"
+msgstr "L'année dernière"
+
+msgid "From"
+msgstr "Du"
+
+msgid "Start Date"
+msgstr "Date de début"
+
+msgid "End Date"
+msgstr "Date de fin"
+
+# --- Filtres de rapport ---
+msgid "User & Group"
+msgstr "Utilisateur & Groupe"
+
+msgctxt "Tin Can Filter Group name"
+msgid "User & Group"
+msgstr "Utilisateur & Groupe"
+
+msgctxt "Tin Can Filter Group name"
+msgid "Groups"
+msgstr "Groupes"
+
+msgctxt "Tin Can Filter Content label"
+msgid "Content"
+msgstr "Contenu"
+
+msgctxt "Tin Can Filter Group name"
+msgid "Course"
+msgstr "Formation"
+
+msgctxt "Tin Can Filter Group name"
+msgid "Module"
+msgstr "Module"
+
+msgctxt "Tin Can Filter Group name"
+msgid "modules"
+msgstr "modules"
+
+msgctxt "Tin Can Filter Activity name"
+msgid "Activity"
+msgstr "Activité"
+
+msgctxt "Tin Can Filter Action name"
+msgid "action"
+msgstr "action"
+
+msgctxt "Tin Can Filter Action name"
+msgid "actions"
+msgstr "actions"
+
+msgctxt "Tin Can Filter Date Range name"
+msgid "Date Range"
+msgstr "Plage de dates"
+
+msgctxt "Tin Can Filter Activity name"
+msgid "Quiz"
+msgstr "Quiz"
+
+msgid "All Modules"
+msgstr "Tous les modules"
+
+msgid "All Actions"
+msgstr "Toutes les actions"
+
+msgid "All Results"
+msgstr "Tous les résultats"
+
+msgid "All %s"
+msgstr "Tous les %s"
+
+msgid "No %s"
+msgstr "Aucun(e) %s"
+
+msgid "No %s available"
+msgstr "Aucun(e) %s disponible"
+
+msgid "Select a %s"
+msgstr "Sélectionner un(e) %s"
+
+msgid "No results"
+msgstr "Aucun résultat"
+
+msgid "No results found"
+msgstr "Aucun résultat trouvé"
+
+msgid "No stats recorded"
+msgstr "Aucune statistique enregistrée"
+
+msgid "No quiz results found"
+msgstr "Aucun résultat de quiz trouvé"
+
+# --- Messages d'erreur / accès ---
+msgid "You must be logged in to view this report."
+msgstr "Vous devez être connecté pour consulter ce rapport."
+
+msgid "You do not have access to this report"
+msgstr "Vous n'avez pas accès à ce rapport"
+
+msgid "Please log in to view the report."
+msgstr "Veuillez vous connecter pour consulter le rapport."
+
+msgid "Please Log in to view the report."
+msgstr "Veuillez vous connecter pour consulter le rapport."
+
+msgid "Sorry, you do not have permission to view this report."
+msgstr "Désolé, vous n'avez pas la permission de consulter ce rapport."
+
+msgid "You must be a Group Leader or Administrator with access to at least one group to use this report."
+msgstr "Vous devez être responsable de groupe ou administrateur avec accès à au moins un groupe pour utiliser ce rapport."
+
+msgid "This report is only accessible by group leaders and administrators."
+msgstr "Ce rapport est uniquement accessible aux responsables de groupe et aux administrateurs."
+
+msgid "This report is only accessible by group leader and administrators."
+msgstr "Ce rapport est uniquement accessible aux responsables de groupe et aux administrateurs."
+
+msgid "Sorry, Access Denied"
+msgstr "Désolé, accès refusé"
+
+msgid "Group Leader has no groups assigned."
+msgstr "Le responsable de groupe n'a aucun groupe assigné."
+
+msgid "You do not have the capability to view tincanny data."
+msgstr "Vous n'avez pas les permissions nécessaires pour voir les données Tin Canny."
+
+msgid "There are no activities to report."
+msgstr "Aucune activité à rapporter."
+
+# --- Sélection / filtrage ---
+msgid "Select a Group"
+msgstr "Sélectionner un groupe"
+
+msgid "Select a student"
+msgstr "Sélectionner un apprenant"
+
+msgid "No students available"
+msgstr "Aucun apprenant disponible"
+
+msgid "Search by username, name, email or status"
+msgstr "Rechercher par identifiant, nom, e-mail ou statut"
+
+msgid "Search by username, name, email, date or score"
+msgstr "Rechercher par identifiant, nom, e-mail, date ou score"
+
+#. translators: %1$s is the number of results, %2$s is the quiz label
+msgid "%1$s user found for selected %2$s"
+msgid_plural "%1$s users found for selected %2$s"
+msgstr[0] "%1$s apprenant trouvé pour le/la %2$s sélectionné(e)"
+msgstr[1] "%1$s apprenants trouvés pour le/la %2$s sélectionné(e)"
+
+#. translators: %s is the quiz label
+msgid "No users found for selected %s"
+msgstr "Aucun apprenant trouvé pour le/la %s sélectionné(e)"
+
+#. translators: %1$s is the group label, %2$s is the courses label
+msgid "Selected %1$s has no %2$s."
+msgstr "Le/la %1$s sélectionné(e) n'a aucune %2$s."
+
+#. translators: %1$s is the course label, %2$s is the lessons/topics label
+msgid "The selected %1$s has no %2$s."
+msgstr "La %1$s sélectionnée n'a aucun(e) %2$s."
+
+#. translators: %1$s is the course label, %2$s is the lesson/topic label
+msgid "Select a %1$s and %2$s for results"
+msgstr "Sélectionner une %1$s et un(e) %2$s pour voir les résultats"
+
+#. translators: %1$s is the courses/lessons/topics label, %2$s is the group/course label
+msgid "There are no %1$s associated with the selected %2$s."
+msgstr "Aucun(e) %1$s n'est associé(e) au/à la %2$s sélectionné(e)."
+
+#. translators: %s is the course label
+msgid "There are no students enrolled in the selected %s."
+msgstr "Aucun apprenant n'est inscrit dans la %s sélectionnée."
+
+#. translators: %1$s group label, %2$s plural form
+msgid "Any %1$s, including no %1$s"
+msgstr "Tout(e) %1$s, y compris sans %1$s"
+
+#. translators: %s is the group label
+msgid "%s ( Optional )"
+msgstr "%s (Optionnel)"
+
+#. translators: %s is the label of the invalid parameter
+msgid "invalid %s id supplied"
+msgstr "identifiant %s invalide fourni"
+
+#. translators: %s is the quiz title
+msgctxt "Quiz score"
+msgid "%s score"
+msgstr "Score %s"
+
+#. translators: %s is the user's name
+msgid "Activity Report for %s"
+msgstr "Rapport d'activité pour %s"
+
+#. translators: %s is the "Course" label
+msgctxt "%s is the \"Course\" label"
+msgid "%s ID not found."
+msgstr "ID %s introuvable."
+
+msgid "Group ID not found."
+msgstr "ID de groupe introuvable."
+
+msgid "Course ID not found."
+msgstr "ID de formation introuvable."
+
+msgid "Essay Link Not Found"
+msgstr "Lien vers le devoir introuvable"
+
+msgid "User ID Not Found"
+msgstr "ID utilisateur introuvable"
+
+msgid "Essay answer not found."
+msgstr "Réponse au devoir introuvable."
+
+msgid "Invalid user ID"
+msgstr "ID utilisateur invalide"
+
+msgid "Invalid user set in address bar."
+msgstr "Utilisateur invalide dans la barre d'adresse."
+
+msgid "We couldn't find an avatar."
+msgstr "Impossible de trouver un avatar."
+
+msgid "Not Found: "
+msgstr "Introuvable : "
+
+# --- Contenu / blocs ---
+msgid "Tin Canny Content"
+msgstr "Contenu Tin Canny"
+
+msgid "Something went wrong. Please, try again"
+msgstr "Une erreur s'est produite. Veuillez réessayer."
+
+msgid "Loading Library..."
+msgstr "Chargement de la bibliothèque..."
+
+msgid "We didn't find any content. Please, try uploading some"
+msgstr "Aucun contenu trouvé. Veuillez en importer."
+
+msgid "Select from Library"
+msgstr "Sélectionner depuis la bibliothèque"
+
+msgid "Select content"
+msgstr "Sélectionner un contenu"
+
+msgid "Search content"
+msgstr "Rechercher un contenu"
+
+msgid "Cancel"
+msgstr "Annuler"
+
+msgid "Open"
+msgstr "Ouvrir"
+
+msgid "Display Content In"
+msgstr "Afficher le contenu dans"
+
+msgid "Open with"
+msgstr "Ouvrir avec"
+
+msgid "Lightbox"
+msgstr "Lightbox"
+
+msgid "Iframe"
+msgstr "Iframe"
+
+msgid "Button"
+msgstr "Bouton"
+
+msgid "Image"
+msgstr "Image"
+
+msgid "Link"
+msgstr "Lien"
+
+msgid "Lightbox Settings"
+msgstr "Paramètres Lightbox"
+
+msgid "Title"
+msgstr "Titre"
+
+msgid "Effect"
+msgstr "Effet"
+
+msgid "Iframe Settings"
+msgstr "Paramètres Iframe"
+
+msgid "Width"
+msgstr "Largeur"
+
+msgid "Height"
+msgstr "Hauteur"
+
+msgid "Button Settings"
+msgstr "Paramètres du bouton"
+
+msgid "Text"
+msgstr "Texte"
+
+msgid "Size"
+msgstr "Taille"
+
+msgid "Small"
+msgstr "Petit"
+
+msgid "Normal"
+msgstr "Normal"
+
+msgid "Big"
+msgstr "Grand"
+
+msgid "Image Settings"
+msgstr "Paramètres de l'image"
+
+msgid "Upload"
+msgstr "Importer"
+
+msgid "Media Library"
+msgstr "Médiathèque"
+
+msgid "Link Settings"
+msgstr "Paramètres du lien"
+
+msgid "Page Settings"
+msgstr "Paramètres de page"
+
+msgid "Open in"
+msgstr "Ouvrir dans"
+
+msgid "Open in the same window"
+msgstr "Ouvrir dans la même fenêtre"
+
+msgid "Open in a new window"
+msgstr "Ouvrir dans une nouvelle fenêtre"
+
+msgid "Same window"
+msgstr "Même fenêtre"
+
+msgid "New window"
+msgstr "Nouvelle fenêtre"
+
+msgid "New tab"
+msgstr "Nouvel onglet"
+
+msgid "Fade"
+msgstr "Fondu"
+
+msgid "Zoom"
+msgstr "Zoom"
+
+msgid "None"
+msgstr "Aucun"
+
+msgid "Use global Height and Width setting."
+msgstr "Utiliser les paramètres globaux de hauteur et largeur."
+
+# --- Dropdowns ---
+msgctxt "Dropdown"
+msgid "The results could not be loaded."
+msgstr "Les résultats n'ont pas pu être chargés."
+
+msgctxt "Dropdown"
+msgid "Please delete 1 character"
+msgstr "Veuillez supprimer 1 caractère"
+
+#. translators: %s is a character count
+msgctxt "Dropdown"
+msgid "Please delete %s characters"
+msgstr "Veuillez supprimer %s caractères"
+
+#. translators: %s is a character count
+msgctxt "Dropdown"
+msgid "Please enter %s or more characters"
+msgstr "Veuillez saisir %s caractères ou plus"
+
+msgctxt "Dropdown"
+msgid "Loading more results..."
+msgstr "Chargement de plus de résultats..."
+
+msgctxt "Dropdown"
+msgid "You can only select 1 item"
+msgstr "Vous ne pouvez sélectionner qu'1 élément"
+
+#. translators: %s is a number of items
+msgctxt "Dropdown"
+msgid "You can only select %s items"
+msgstr "Vous ne pouvez sélectionner que %s éléments"
+
+msgctxt "Dropdown"
+msgid "No results found"
+msgstr "Aucun résultat trouvé"
+
+msgctxt "Dropdown"
+msgid "Searching..."
+msgstr "Recherche en cours..."
+
+msgctxt "Dropdown"
+msgid "Remove all items"
+msgstr "Supprimer tous les éléments"
+
+# --- Infos données ---
+msgid "Data not right?"
+msgstr "Les données sont incorrectes ?"
+
+#. translators: %s is a link
+msgid "Try running the %s."
+msgstr "Essayez de lancer %s."
+
+msgid "LearnDash Data Upgrades"
+msgstr "Mises à niveau des données LearnDash"
+
+msgid "All Questions"
+msgstr "Toutes les questions"
+
+msgid "Please select your criteria to filter the Tin Can data."
+msgstr "Veuillez sélectionner vos critères pour filtrer les données Tin Can."
+
+msgid "Please select your criteria to filter the xAPI Quiz data."
+msgstr "Veuillez sélectionner vos critères pour filtrer les données xAPI Quiz."
+
+msgid "Please select your criteria to filter the Tin Can data"
+msgstr "Veuillez sélectionner vos critères pour filtrer les données Tin Can"
+
+msgid "Please select your criteria to filter the xAPI Quiz data"
+msgstr "Veuillez sélectionner vos critères pour filtrer les données xAPI Quiz"
+
+msgid "To customize the columns that are displayed, use the Screen Options tab in the top right."
+msgstr "Pour personnaliser les colonnes affichées, utilisez l'onglet Options de l'écran en haut à droite."
+
+# ============================================================
+# PRIORITÉ 2 — Interface admin
+# ============================================================
+
+msgid "Settings"
+msgstr "Paramètres"
+
+msgid "Licensing"
+msgstr "Licences"
+
+msgid "Help"
+msgstr "Aide"
+
+msgid "Site check"
+msgstr "Vérification du site"
+
+msgid "Manage content"
+msgstr "Gérer le contenu"
+
+msgid "License activation"
+msgstr "Activation de la licence"
+
+msgid "Something went wrong"
+msgstr "Une erreur s'est produite"
+
+#. translators: %1$s is the plugin name, %2$s is the expiry date, %3$s is the renew link
+msgctxt "License expiry notice"
+msgid "Your license for %1$s has expired on %2$s. %3$s to continue to receive updates and support."
+msgstr "Votre licence pour %1$s a expiré le %2$s. %3$s pour continuer à recevoir les mises à jour et le support."
+
+msgid "Renew now"
+msgstr "Renouveler maintenant"
+
+msgid "Your license is active"
+msgstr "Votre licence est active"
+
+msgid "Your license has expired!"
+msgstr "Votre licence a expiré !"
+
+msgid "Enter your license key"
+msgstr "Saisissez votre clé de licence"
+
+msgid "Your license is not active"
+msgstr "Votre licence n'est pas active"
+
+msgid "Activate"
+msgstr "Activer"
+
+msgid "Activate now"
+msgstr "Activer maintenant"
+
+msgid "Deactivate License"
+msgstr "Désactiver la licence"
+
+msgid "Buy license"
+msgstr "Acheter une licence"
+
+msgid "Expires"
+msgstr "Expire le"
+
+msgid "Lifetime"
+msgstr "À vie"
+
+msgid "Activations left:"
+msgstr "Activations restantes :"
+
+msgid "Expired"
+msgstr "Expirée"
+
+msgid "License is activated."
+msgstr "La licence est activée."
+
+msgid "here"
+msgstr "ici"
+
+msgid "Need help?"
+msgstr "Besoin d'aide ?"
+
+msgid "Where to get my license key"
+msgstr "Où trouver ma clé de licence"
+
+msgid "Buy a new license"
+msgstr "Acheter une nouvelle licence"
+
+msgid "Knowledge base"
+msgstr "Base de connaissances"
+
+msgid "Please enter a valid license code and click \"Activate now\"."
+msgstr "Veuillez saisir un code de licence valide et cliquer sur « Activer maintenant »."
+
+msgid "renew your license"
+msgstr "renouveler votre licence"
+
+# Admin - Ticket
+msgid "Submit a ticket"
+msgstr "Soumettre un ticket"
+
+msgid "Full name"
+msgstr "Nom complet"
+
+msgid "Site URL"
+msgstr "URL du site"
+
+msgid "License Key"
+msgstr "Clé de licence"
+
+msgid "Subject"
+msgstr "Sujet"
+
+msgid "Message"
+msgstr "Message"
+
+msgid "Send site data"
+msgstr "Envoyer les données du site"
+
+msgid "Create ticket"
+msgstr "Créer un ticket"
+
+msgid "Site data"
+msgstr "Données du site"
+
+msgid "My Account"
+msgstr "Mon compte"
+
+msgid "Dismiss this notice."
+msgstr "Fermer cette notification."
+
+msgid "Your ticket has been created. Someone at Uncanny Owl will contact you regarding your issue."
+msgstr "Votre ticket a été créé. Un membre de l'équipe Uncanny Owl vous contactera concernant votre problème."
+
+# Admin - Menus contextuels
+msgctxt "uncanny-learndash-reporting"
+msgid "Tin Canny Reporting for LearnDash"
+msgstr "Tin Canny Reporting pour LearnDash"
+
+msgctxt "uncanny-learndash-reporting"
+msgid "Tin Canny Reporting"
+msgstr "Tin Canny Reporting"
+
+msgctxt "uncanny-learndash-reporting"
+msgid "Course Report"
+msgstr "Rapport de formation"
+
+msgid "Tin Can"
+msgstr "Tin Can"
+
+# Admin - Vérification site
+msgid "WordPress Minimum Requirements"
+msgstr "Exigences minimales WordPress"
+
+msgid "HTTP/HTTPS Check"
+msgstr "Vérification HTTP/HTTPS"
+
+msgid "Permalink Settings"
+msgstr "Réglages des permaliens"
+
+msgid "Permalink Settings Check"
+msgstr "Vérification des permaliens"
+
+msgid "Permalink Status"
+msgstr "Statut des permaliens"
+
+msgid "Endpoint Availability"
+msgstr "Disponibilité du point de terminaison"
+
+msgid "Endpoint Availability Check"
+msgstr "Vérification du point de terminaison"
+
+msgid "Mod Security Check"
+msgstr "Vérification Mod Security"
+
+msgid "Mod_Security Check"
+msgstr "Vérification Mod_Security"
+
+msgid "<strong style=\"color: green;\">Passed</strong>"
+msgstr "<strong style=\"color: green;\">Réussi</strong>"
+
+msgid "Yes"
+msgstr "Oui"
+
+msgid "No"
+msgstr "Non"
+
+# Admin - Informations système
+msgid "MySQL Version"
+msgstr "Version MySQL"
+
+msgid "MariaDB Version"
+msgstr "Version MariaDB"
+
+msgid "Environment"
+msgstr "Environnement"
+
+msgid "Setting"
+msgstr "Paramètre"
+
+msgid "Value"
+msgstr "Valeur"
+
+msgid "Server info"
+msgstr "Informations serveur"
+
+msgid "PHP Version"
+msgstr "Version PHP"
+
+msgid "WordPress Settings"
+msgstr "Paramètres WordPress"
+
+msgid "WordPress address (URL)"
+msgstr "Adresse WordPress (URL)"
+
+msgid "Site address"
+msgstr "Adresse du site"
+
+msgid "WordPress Version"
+msgstr "Version WordPress"
+
+msgid "Multisite"
+msgstr "Multisite"
+
+msgid "Site Language"
+msgstr "Langue du site"
+
+msgid "Object Cache"
+msgstr "Cache d'objets"
+
+msgid "Active WordPress Plugins"
+msgstr "Extensions WordPress actives"
+
+msgid "Plugin"
+msgstr "Extension"
+
+msgid "Version"
+msgstr "Version"
+
+msgid "LearnDash Settings"
+msgstr "Paramètres LearnDash"
+
+msgid "LearnDash not active"
+msgstr "LearnDash non actif"
+
+msgid "DB Version"
+msgstr "Version BDD"
+
+msgid "Script Debug"
+msgstr "Débogage des scripts"
+
+msgid "PHP Settings"
+msgstr "Paramètres PHP"
+
+msgid "Not defined"
+msgstr "Non défini"
+
+msgid "not defined"
+msgstr "non défini"
+
+# Gestion de contenu / upload
+msgid "Upload Content"
+msgstr "Importer du contenu"
+
+msgctxt "Tin Canny Zip Uploader"
+msgid "Scanning zip file"
+msgstr "Analyse du fichier zip"
+
+msgctxt "Tin Canny Zip Uploader"
+msgid "No file selected"
+msgstr "Aucun fichier sélectionné"
+
+msgctxt "Tin Canny Zip Uploader"
+msgid "Selected file is not a zip file."
+msgstr "Le fichier sélectionné n'est pas un fichier zip."
+
+#. translators: %1$s module type, %2$s Zip File Name
+msgctxt "Tin Canny Zip Uploader"
+msgid "Uploading %1$s Module - %2$s"
+msgstr "Import du module %1$s - %2$s"
+
+msgctxt "Tin Canny Zip Uploader"
+msgid "Unsupported"
+msgstr "Non pris en charge"
+
+msgctxt "Tin Canny Zip Uploader"
+msgid "Unknown"
+msgstr "Inconnu"
+
+#. translators: %1$d number of files uploaded + 1, %2$d: total number of files
+msgctxt "Tin Canny Zip Uploader"
+msgid "Uploading file %1$d of %2$d"
+msgstr "Import du fichier %1$d sur %2$d"
+
+#. translators: %1$d number of files uploaded, %2$d: total number of files
+msgctxt "Tin Canny Zip Uploader"
+msgid "Uploaded %1$d of %2$d files"
+msgstr "%1$d fichier(s) importé(s) sur %2$d"
+
+msgctxt "Tin Canny Zip Uploader"
+msgid "Current file:"
+msgstr "Fichier en cours :"
+
+msgctxt "Tin Canny Zip Uploader"
+msgid "Cancel Upload"
+msgstr "Annuler l'import"
+
+msgctxt "Tin Canny Zip Uploader"
+msgid "Upload started"
+msgstr "Import démarré"
+
+msgctxt "Tin Canny Zip Uploader"
+msgid "Upload complete"
+msgstr "Import terminé"
+
+msgctxt "Tin Canny Zip Uploader"
+msgid "Upload cancelled"
+msgstr "Import annulé"
+
+msgctxt "Tin Canny Zip Uploader"
+msgid "Upload error"
+msgstr "Erreur d'import"
+
+msgctxt "Tin Canny Zip Uploader"
+msgid "Loading..."
+msgstr "Chargement..."
+
+msgctxt "Tin Canny Zip Uploader"
+msgid "Errors"
+msgstr "Erreurs"
+
+msgctxt "Tin Canny Zip Uploader"
+msgid "File"
+msgstr "Fichier"
+
+msgctxt "Tin Canny Zip Uploader"
+msgid "Upload cancelled."
+msgstr "Import annulé."
+
+msgctxt "Tin Canny Zip Uploader"
+msgid "Module registered!"
+msgstr "Module enregistré !"
+
+msgctxt "Tin Canny Zip Uploader"
+msgid "Invalid module type."
+msgstr "Type de module invalide."
+
+msgctxt "Tin Canny Zip Uploader"
+msgid "File uploaded."
+msgstr "Fichier importé."
+
+msgctxt "Tin Canny Zip Uploader"
+msgid "Error uploading file."
+msgstr "Erreur lors de l'import du fichier."
+
+msgctxt "Tin Canny Zip Uploader"
+msgid "Invalid data."
+msgstr "Données invalides."
+
+msgctxt "Tin Canny Zip Uploader"
+msgid "Directory does not exist."
+msgstr "Le répertoire n'existe pas."
+
+msgctxt "Tin Canny Zip Uploader"
+msgid "Could not delete directory."
+msgstr "Impossible de supprimer le répertoire."
+
+msgctxt "Tin Canny Zip Uploader"
+msgid "Database Error."
+msgstr "Erreur de base de données."
+
+msgctxt "Tin Canny Zip Uploader"
+msgid "Could not rename directory."
+msgstr "Impossible de renommer le répertoire."
+
+msgctxt "Tin Canny Zip Uploader"
+msgid "You do not have permissions to access this endpoint."
+msgstr "Vous n'avez pas les permissions pour accéder à ce point de terminaison."
+
+msgctxt "Tin Canny Zip Uploader"
+msgid "Invalid action."
+msgstr "Action invalide."
+
+msgctxt "Tin Canny Zip Uploader"
+msgid "Invalid Data unable to upload file."
+msgstr "Données invalides, impossible d'importer le fichier."
+
+msgctxt "Tin Canny Zip Uploader"
+msgid "Could not create directory structure"
+msgstr "Impossible de créer la structure de répertoires"
+
+msgctxt "Tin Canny Zip Uploader"
+msgid "There has been an error registering the module."
+msgstr "Une erreur s'est produite lors de l'enregistrement du module."
+
+msgctxt "Tin Canny Zip Uploader"
+msgid "No response received from the server."
+msgstr "Aucune réponse reçue du serveur."
+
+msgctxt "Tin Canny Zip Uploader"
+msgid "will not be recorded"
+msgstr "ne seront pas enregistrées"
+
+msgctxt "Tin Canny Zip Uploader"
+msgid "may display errors because the module cannot communicate with an LMS or LRS"
+msgstr "peuvent afficher des erreurs car le module ne peut pas communiquer avec le LMS ou le LRS"
+
+msgctxt "Tin Canny Zip Uploader"
+msgid "Select an .html file"
+msgstr "Sélectionner un fichier .html"
+
+msgctxt "Tin Canny Zip Uploader"
+msgid "directory tree"
+msgstr "arborescence"
+
+msgid "No file uploaded."
+msgstr "Aucun fichier importé."
+
+msgid "Database error."
+msgstr "Erreur de base de données."
+
+msgid "Unsupported module type."
+msgstr "Type de module non pris en charge."
+
+msgid "File uploaded."
+msgstr "Fichier importé."
+
+# Confirmation
+msgid "Are you sure you want to permanently delete all Tin Can data? This cannot be undone."
+msgstr "Êtes-vous sûr de vouloir supprimer définitivement toutes les données Tin Can ? Cette action est irréversible."
+
+msgid "Are you sure you want to permanently delete all Bookmark data? This cannot be undone."
+msgstr "Êtes-vous sûr de vouloir supprimer définitivement toutes les données de marque-pages ? Cette action est irréversible."
+
+#. translators: %s is the "Course" label
+msgctxt "%s is the \"Course\" label"
+msgid "%s ID: "
+msgstr "ID %s : "
+
+msgid "Completion de parcours"
+msgstr "Complétion de parcours"
+
+# Misc
+msgid "by"
+msgstr "par"
+
+msgid "Group Quiz Report Settings"
+msgstr "Paramètres du rapport de quiz de groupe"
+
+msgid "Tin Canny Course/User Report"
+msgstr "Rapport Formation/Utilisateur Tin Canny"
+
+msgid "Tin Canny Group Quiz Report"
+msgstr "Rapport de quiz de groupe Tin Canny"
+
+msgid "Tin Canny Individual Quiz Report"
+msgstr "Rapport de quiz individuel Tin Canny"
+
+msgid "Tin Canny Lesson Report"
+msgstr "Rapport de leçon Tin Canny"
+
+msgid "Tin Canny Topic Report"
+msgstr "Rapport de sujet Tin Canny"
+
+msgid "User Quiz Report URL"
+msgstr "URL du rapport de quiz utilisateur"
+
+msgid "Current User doesn't have permissions to Tin Can report data"
+msgstr "L'utilisateur actuel n'a pas les permissions pour accéder aux données du rapport Tin Can"
+
+msgid "I can't find the answer to my question."
+msgstr "Je ne trouve pas la réponse à ma question."
