@@ -6732,33 +6732,41 @@ add_action( 'admin_init', function () {
     wp_die( $s );
 } );
 
-// === Auto-inscription des Group Leaders comme membres du groupe ===
+// === Accès aux parcours pour les Group Leaders (sans les ajouter comme membres) ===
+/**
+ * Inscrit le Group Leader directement aux COURS du groupe via ld_update_course_access().
+ * Il peut accéder aux parcours sans apparaître dans la liste des membres du groupe.
+ */
 
-// 1. Nouveaux ajouts : hook déclenché à chaque nouveau Group Leader
+// Helper : inscrit un manager aux cours d'un groupe
+function ay_enroll_leader_in_group_courses( $user_id, $group_id ) {
+    if ( ! function_exists( 'ld_update_course_access' ) ) return;
+    if ( ! function_exists( 'learndash_group_enrolled_courses' ) ) return;
+    $course_ids = learndash_group_enrolled_courses( $group_id );
+    foreach ( (array) $course_ids as $course_id ) {
+        ld_update_course_access( $user_id, $course_id, false ); // false = inscrire
+    }
+}
+
+// 1. Nouveaux Group Leaders : accès aux cours dès l'ajout
 add_action( 'learndash_group_leader_user_added', function ( $user_id, $group_id ) {
-    if ( ! function_exists( 'ld_update_group_access' ) ) return;
-    if ( learndash_is_user_in_group( $user_id, $group_id ) ) return;
-    ld_update_group_access( $user_id, $group_id, false );
+    ay_enroll_leader_in_group_courses( $user_id, $group_id );
 }, 10, 2 );
 
-// 2. Migration one-time : inscrit tous les anciens Group Leaders existants
+// 2. Migration one-time : traite tous les Group Leaders existants
 add_action( 'admin_init', function () {
-    if ( get_option( 'ay_gl_member_migration_done' ) ) return;
-    if ( ! function_exists( 'ld_update_group_access' ) ) return;
+    if ( get_option( 'ay_gl_courses_migration_done' ) ) return;
     if ( ! function_exists( 'learndash_get_administrators_group_ids' ) ) return;
 
     $leaders = get_users( [ 'role' => 'group_leader', 'fields' => 'ID' ] );
-
     foreach ( $leaders as $user_id ) {
         $group_ids = learndash_get_administrators_group_ids( $user_id );
         foreach ( (array) $group_ids as $group_id ) {
-            if ( ! learndash_is_user_in_group( $user_id, $group_id ) ) {
-                ld_update_group_access( $user_id, $group_id, false );
-            }
+            ay_enroll_leader_in_group_courses( $user_id, $group_id );
         }
     }
 
-    update_option( 'ay_gl_member_migration_done', 1 );
+    update_option( 'ay_gl_courses_migration_done', 1 );
 } );
 
 
