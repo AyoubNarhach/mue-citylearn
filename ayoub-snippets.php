@@ -6753,7 +6753,7 @@ add_action( 'learndash_group_leader_user_added', function ( $user_id, $group_id 
     ay_enroll_leader_in_group_courses( $user_id, $group_id );
 }, 10, 2 );
 
-// 2. Migration one-time : traite tous les Group Leaders existants
+// 2. Migration one-time : accès aux cours pour tous les Group Leaders existants
 add_action( 'admin_init', function () {
     if ( get_option( 'ay_gl_courses_migration_done' ) ) return;
     if ( ! function_exists( 'learndash_get_administrators_group_ids' ) ) return;
@@ -6767,6 +6767,29 @@ add_action( 'admin_init', function () {
     }
 
     update_option( 'ay_gl_courses_migration_done', 1 );
+} );
+
+// 3. Nettoyage one-time : retire les Group Leaders de la liste des membres du groupe
+//    (annule la première migration qui les avait ajoutés comme membres)
+add_action( 'admin_init', function () {
+    if ( get_option( 'ay_gl_cleanup_membership_done' ) ) return;
+    if ( ! function_exists( 'learndash_get_administrators_group_ids' ) ) return;
+    if ( ! function_exists( 'ld_update_group_access' ) ) return;
+
+    $leaders = get_users( [ 'role' => 'group_leader', 'fields' => 'ID' ] );
+    foreach ( $leaders as $user_id ) {
+        $group_ids = learndash_get_administrators_group_ids( $user_id );
+        foreach ( (array) $group_ids as $group_id ) {
+            // S'assurer que l'accès aux cours est bien actif avant de retirer du groupe
+            ay_enroll_leader_in_group_courses( $user_id, $group_id );
+            // Retirer de la liste des membres du groupe
+            if ( learndash_is_user_in_group( $user_id, $group_id ) ) {
+                ld_update_group_access( $user_id, $group_id, true ); // true = retirer
+            }
+        }
+    }
+
+    update_option( 'ay_gl_cleanup_membership_done', 1 );
 } );
 
 
