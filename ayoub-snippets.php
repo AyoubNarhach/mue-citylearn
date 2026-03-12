@@ -6769,27 +6769,43 @@ add_action( 'admin_init', function () {
     update_option( 'ay_gl_courses_migration_done', 1 );
 } );
 
-// 3. Nettoyage one-time : retire les Group Leaders de la liste des membres du groupe
-//    (annule la première migration qui les avait ajoutés comme membres)
+// 3. Nettoyage v2 : retire leaders ET admins LMS de la liste membres (itère par groupe)
 add_action( 'admin_init', function () {
-    if ( get_option( 'ay_gl_cleanup_membership_done' ) ) return;
-    if ( ! function_exists( 'learndash_get_administrators_group_ids' ) ) return;
+    if ( get_option( 'ay_gl_cleanup_v2_done' ) ) return;
     if ( ! function_exists( 'ld_update_group_access' ) ) return;
 
-    $leaders = get_users( [ 'role' => 'group_leader', 'fields' => 'ID' ] );
-    foreach ( $leaders as $user_id ) {
-        $group_ids = learndash_get_administrators_group_ids( $user_id );
-        foreach ( (array) $group_ids as $group_id ) {
-            // S'assurer que l'accès aux cours est bien actif avant de retirer du groupe
-            ay_enroll_leader_in_group_courses( $user_id, $group_id );
-            // Retirer de la liste des membres du groupe
-            if ( learndash_is_user_in_group( $user_id, $group_id ) ) {
-                ld_update_group_access( $user_id, $group_id, true ); // true = retirer
+    global $wpdb;
+
+    $groups = get_posts( [
+        'post_type'      => 'groups',
+        'posts_per_page' => -1,
+        'fields'         => 'ids',
+        'post_status'    => 'publish',
+    ] );
+
+    foreach ( (array) $groups as $group_id ) {
+        $member_ids = $wpdb->get_col( $wpdb->prepare(
+            "SELECT user_id FROM {$wpdb->usermeta} WHERE meta_key = %s",
+            "learndash_group_users_{$group_id}"
+        ) );
+
+        foreach ( (array) $member_ids as $user_id ) {
+            $user = get_userdata( (int) $user_id );
+            if ( ! $user ) continue;
+
+            $is_leader_or_admin = in_array( 'group_leader', (array) $user->roles )
+                               || user_can( (int) $user_id, 'manage_options' );
+
+            if ( $is_leader_or_admin ) {
+                // S'assurer que l'accès aux cours est conservé
+                ay_enroll_leader_in_group_courses( (int) $user_id, (int) $group_id );
+                // Retirer de la liste des membres du groupe
+                ld_update_group_access( (int) $user_id, (int) $group_id, true );
             }
         }
     }
 
-    update_option( 'ay_gl_cleanup_membership_done', 1 );
+    update_option( 'ay_gl_cleanup_v2_done', 1 );
 } );
 
 
