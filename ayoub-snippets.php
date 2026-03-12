@@ -6732,10 +6732,11 @@ add_action( 'admin_init', function () {
     wp_die( $s );
 } );
 
-// === Accès aux parcours pour les Group Leaders (sans les ajouter comme membres) ===
+// === Accès aux parcours pour les Group Leaders ===
 /**
- * Inscrit le Group Leader directement aux COURS du groupe via ld_update_course_access().
- * Il peut accéder aux parcours sans apparaître dans la liste des membres du groupe.
+ * Règle :
+ *  - Administrateur LMS (manage_options) → accès aux cours seulement, PAS membre du groupe
+ *  - Group Leader simple → accès aux cours ET ajouté comme membre du groupe
  */
 
 // Helper : inscrit un manager aux cours d'un groupe
@@ -6748,9 +6749,17 @@ function ay_enroll_leader_in_group_courses( $user_id, $group_id ) {
     }
 }
 
-// 1. Nouveaux Group Leaders : accès aux cours dès l'ajout
+// Helper : indique si un utilisateur est Administrateur LMS
+function ay_is_lms_admin( $user_id ) {
+    return user_can( (int) $user_id, 'manage_options' );
+}
+
+// 1. Nouveaux Group Leaders : accès aux cours + membre du groupe (sauf Administrateur LMS)
 add_action( 'learndash_group_leader_user_added', function ( $user_id, $group_id ) {
     ay_enroll_leader_in_group_courses( $user_id, $group_id );
+    if ( ! ay_is_lms_admin( $user_id ) && function_exists( 'ld_update_group_access' ) ) {
+        ld_update_group_access( (int) $user_id, (int) $group_id, false ); // false = ajouter comme membre
+    }
 }, 10, 2 );
 
 // 2. Migration one-time : accès aux cours pour tous les Group Leaders existants
@@ -6767,6 +6776,24 @@ add_action( 'admin_init', function () {
     }
 
     update_option( 'ay_gl_courses_migration_done', 1 );
+} );
+
+// 4. Migration one-time : ajoute les Group Leaders simples (non-admin) comme membres de leurs groupes
+add_action( 'admin_init', function () {
+    if ( get_option( 'ay_gl_add_members_migration_done' ) ) return;
+    if ( ! function_exists( 'learndash_get_administrators_group_ids' ) ) return;
+    if ( ! function_exists( 'ld_update_group_access' ) ) return;
+
+    $leaders = get_users( [ 'role' => 'group_leader', 'fields' => 'ID' ] );
+    foreach ( $leaders as $user_id ) {
+        if ( ay_is_lms_admin( $user_id ) ) continue; // exclure les Administrateurs LMS
+        $group_ids = learndash_get_administrators_group_ids( $user_id );
+        foreach ( (array) $group_ids as $group_id ) {
+            ld_update_group_access( (int) $user_id, (int) $group_id, false ); // false = ajouter comme membre
+        }
+    }
+
+    update_option( 'ay_gl_add_members_migration_done', 1 );
 } );
 
 // 3. Nettoyage v2 : retire leaders ET admins LMS de la liste membres (itère par groupe)
