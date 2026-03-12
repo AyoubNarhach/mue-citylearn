@@ -3,7 +3,7 @@
 		<div class="reporting-section">
 			<div class="reporting-metabox">
 				<div class="reporting-dashboard-col-heading" id="coursesOverviewTableHeading">
-					<?php echo __( 'xAPI Quiz Data', 'uncanny-learndash-reporting' ); ?>
+					<?php echo 'Données Quiz xAPI'; ?>
 				</div>
 				<div class="reporting-dashboard-col-content reporting-dashboard-col-content--no-padding">
 					<div id="tinCanReportContainer" style="position: relative;">
@@ -16,7 +16,7 @@
 									<div class="reporting-dashboard-status reporting-dashboard-status--loading">
 										<div class="reporting-dashboard-status__icon"></div>
 										<div class="reporting-dashboard-status__text">
-											<?php _e( 'Loading', 'uncanny-learndash-reporting' ); ?>
+											<?php echo 'Chargement'; ?>
 										</div>
 									</div>
 								</td>

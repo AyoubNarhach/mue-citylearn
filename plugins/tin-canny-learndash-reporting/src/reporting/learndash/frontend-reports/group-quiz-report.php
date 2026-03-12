@@ -86,13 +86,13 @@ class GroupQuizReport extends Config {
 
 		// Is the user logged in.
 		if ( ! $user_id ) {
-			return __( 'Please log in to view the report.', 'uncanny-learndash-reporting' );
+			return 'Veuillez vous connecter pour consulter le rapport.';
 		}
 
 		// Does the user have proper access to the report.
 		$user_access_role = $this->user_access_role( $user );
 		if ( empty( $user_access_role ) ) {
-			return __( 'Sorry, you do not have permission to view this report.', 'uncanny-learndash-reporting' );
+			return 'Désolé, vous n'avez pas la permission de consulter ce rapport.';
 		}
 
 		// Increment the shortcode instance count.
@@ -109,7 +109,7 @@ class GroupQuizReport extends Config {
 				'quiz-order'     => 'ASC',
 				'columns'        => implode( ',', array_keys( $allowed_columns ) ),
 				'score-type'     => 'percent', //percent|points
-				'orderby_column' => esc_attr__( 'Date', 'uncanny-learndash-reporting' ), // The ID of the column used to sort
+				'orderby_column' => 'Date', // The ID of the column used to sort
 				'order_column'   => 'desc', // Designates the ascending or descending order of the ‘orderby‘ parameter
 			),
 			$request
@@ -304,13 +304,13 @@ class GroupQuizReport extends Config {
 					'success' => false,
 					'message' => sprintf(
 					// translators: %s is the group label
-						__( 'invalid %s id supplied', 'uncanny-learndash-reporting' ),
+						'identifiant %s invalide fourni',
 						\LearnDash_Custom_Label::get_label( 'group' )
 					),
 					'options' => array(
 						array(
 							'value' => '',
-							'text'  => __( 'No results', 'uncanny-learndash-reporting' ),
+							'text'  => 'Aucun résultat',
 						),
 					),
 				),
@@ -356,7 +356,7 @@ class GroupQuizReport extends Config {
 					'success' => false,
 					'message' => sprintf(
 					// translators: %s is the label of the invalid parameter
-						__( 'invalid %s id supplied', 'uncanny-learndash-reporting' ),
+						'identifiant %s invalide fourni',
 						empty( $group_id ) ? \LearnDash_Custom_Label::get_label( 'group' ) : \LearnDash_Custom_Label::get_label( 'quiz' )
 					),
 					'results' => array(),
@@ -497,9 +497,9 @@ class GroupQuizReport extends Config {
 					'user_email' => $user_data->user_email,
 					'first_name' => $user_data->first_name,
 					'last_name'  => $user_data->last_name,
-					'quiz_score' => apply_filters( 'uotc_quiz_report_quiz_score_not_attempted_label', __( 'Not Attempted', 'uncanny-learndash-reporting' ), $user_data ),
-					'quiz_modal' => apply_filters( 'uotc_quiz_report_quiz_modal_not_attempted_label', __( 'Not Attempted', 'uncanny-learndash-reporting' ), $user_data ),
-					'quiz_date'  => apply_filters( 'uotc_quiz_report_quiz_date_not_attempted_label', __( 'Not Attempted', 'uncanny-learndash-reporting' ), $user_data ),
+					'quiz_score' => apply_filters( 'uotc_quiz_report_quiz_score_not_attempted_label', 'Non tenté', $user_data ),
+					'quiz_modal' => apply_filters( 'uotc_quiz_report_quiz_modal_not_attempted_label', 'Non tenté', $user_data ),
+					'quiz_date'  => apply_filters( 'uotc_quiz_report_quiz_date_not_attempted_label', 'Non tenté', $user_data ),
 				);
 			}
 		}
@@ -528,7 +528,7 @@ class GroupQuizReport extends Config {
 				// count results
 				'message' => sprintf(
 				// translators: %1$s is the number of results, %2$s is the quiz label
-					_n( '%1$s user found for selected %2$s', '%1$s users found for selected %2$s', count( $results ), 'uncanny-learndash-reporting' ),
+					( count(  ) > 1 ? '%1 apprenants trouvés pour le/la %2 sélectionné(e)' : '%1 apprenant trouvé pour le/la %2 sélectionné(e)' ),
 					count( $results ),
 					\LearnDash_Custom_Label::get_label( 'quiz' )
 				),
@@ -549,7 +549,7 @@ class GroupQuizReport extends Config {
 				'success' => false,
 				'message' => sprintf(
 				// translators: %s is the quiz label
-					__( 'No users found for selected %s', 'uncanny-learndash-reporting' ),
+					'Aucun apprenant trouvé pour le/la %s sélectionné(e)',
 					\LearnDash_Custom_Label::get_label( 'quiz' )
 				),
 				'results' => array(),
@@ -565,17 +565,17 @@ class GroupQuizReport extends Config {
 	 */
 	private function table_columns_config() {
 		return array(
-			'user_name'  => __( 'Username', 'uncanny-learndash-reporting' ),
-			'first_name' => __( 'First Name', 'uncanny-learndash-reporting' ),
-			'last_name'  => __( 'Last Name', 'uncanny-learndash-reporting' ),
-			'user_email' => __( 'Email', 'uncanny-learndash-reporting' ),
+			'user_name'  => 'Identifiant',
+			'first_name' => 'Prénom',
+			'last_name'  => 'Nom de famille',
+			'user_email' => 'E-mail',
 			'quiz_score' => sprintf(
 			// translators: %s is a quiz label
-				_x( '%s score', 'Quiz score', 'uncanny-learndash-reporting' ),
+				'Score %s',
 				\LearnDash_Custom_Label::get_label( 'quiz' )
 			),
-			'quiz_modal' => __( 'Detailed report', 'uncanny-learndash-reporting' ),
-			'quiz_date'  => __( 'Date', 'uncanny-learndash-reporting' ),
+			'quiz_modal' => 'Rapport détaillé',
+			'quiz_date'  => 'Date',
 		);
 	}
 
@@ -588,53 +588,39 @@ class GroupQuizReport extends Config {
 
 		$i18n = array(
 			'table_language'     => array(
-				'info'              => sprintf(
-				/* translators: %1$s is the start number, %2$s is the end number, and %3$s is the total number of entries */
-					_x( 'Showing %1$s to %2$s of %3$s entries', '%1$s is the start number, %2$s is the end number, and %3$s is the total number of entries', 'uncanny-learndash-reporting' ),
-					'_START_',
-					'_END_',
-					'_TOTAL_'
-				),
-				'infoEmpty'         => __( 'Showing 0 to 0 of 0 entries', 'uncanny-learndash-reporting' ),
-				'infoFiltered'      => sprintf(
-				/* translators: %s is a number */
-					_x( '(filtered from %s total entries)', '%s is a number', 'uncanny-learndash-reporting' ),
-					'_MAX_'
-				),
+				'info'              => 'Affichage de _START_ à _END_ sur _TOTAL_ entrées',
+				'infoEmpty'         => 'Affichage de 0 à 0 sur 0 entrée',
+				'infoFiltered'      => '(filtré sur _MAX_ entrées au total)',
 				'infoPostFix'       => '',
-				'lengthMenu'        => sprintf(
-				/* translators: %s is a number */
-					_x( 'Show %s entries', 'Table', 'uncanny-learndash-reporting' ),
-					'_MENU_'
-				),
-				'loadingRecords'    => __( 'Loading...', 'uncanny-learndash-reporting' ),
-				'processing'        => __( 'Processing...', 'uncanny-learndash-reporting' ),
+				'lengthMenu'        => 'Afficher _MENU_ entrées',
+				'loadingRecords'    => 'Chargement...',
+				'processing'        => 'Traitement...',
 				'search'            => '_INPUT_',
-				'searchPlaceholder' => __( 'Search by username, name, email, date or score', 'uncanny-learndash-reporting' ),
-				'zeroRecords'       => __( 'No quiz results found', 'uncanny-learndash-reporting' ),
+				'searchPlaceholder' => 'Rechercher par identifiant, nom, e-mail, date ou score',
+				'zeroRecords'       => 'Aucun résultat de quiz trouvé',
 				'paginate'          => array(
-					'first'    => __( 'First', 'uncanny-learndash-reporting' ),
-					'last'     => __( 'Last', 'uncanny-learndash-reporting' ),
-					'next'     => __( 'Next', 'uncanny-learndash-reporting' ),
-					'previous' => __( 'Previous', 'uncanny-learndash-reporting' ),
+					'first'    => 'Premier',
+					'last'     => 'Dernier',
+					'next'     => 'Suivant',
+					'previous' => 'Précédent',
 				),
 				'aria'              => array(
-					'sortAscending'  => sprintf( ': %s', __( 'activate to sort column ascending', 'uncanny-learndash-reporting' ) ),
-					'sortDescending' => sprintf( ': %s', __( 'activate to sort column descending', 'uncanny-learndash-reporting' ) ),
+					'sortAscending'  => sprintf( ': %s', 'activer pour trier par ordre croissant' ),
+					'sortDescending' => sprintf( ': %s', 'activer pour trier par ordre décroissant' ),
 				),
 			),
 			'customColumnLabels' => array(
-				'customizeColumns'     => __( 'Customize columns', 'uncanny-learndash-reporting' ),
-				'hideCustomizeColumns' => __( 'Hide customize columns', 'uncanny-learndash-reporting' ),
+				'customizeColumns'     => 'Personnaliser les colonnes',
+				'hideCustomizeColumns' => 'Masquer la personnalisation des colonnes',
 			),
 			'buttons'            => array(
-				'csv'         => __( 'CSV', 'uncanny-learndash-reporting' ),
-				'exportCSV'   => __( 'CSV export', 'uncanny-learndash-reporting' ),
-				'excel'       => __( 'Excel', 'uncanny-learndash-reporting' ),
-				'exportExcel' => __( 'Excel export', 'uncanny-learndash-reporting' ),
+				'csv'         => 'CSV',
+				'exportCSV'   => 'Export CSV',
+				'excel'       => 'Excel',
+				'exportExcel' => 'Export Excel',
 			),
-			'all'                => __( 'All', 'uncanny-learndash-reporting' ),
-			'noQuizResults'      => __( 'No results', 'uncanny-learndash-reporting' ),
+			'all'                => 'Tous',
+			'noQuizResults'      => 'Aucun résultat',
 			'cssSelectors'       => array(
 				'labelLoading' => 'label-loading',
 				'tableLoading' => 'reporting-status-loading-animation-wrap',
@@ -656,7 +642,7 @@ class GroupQuizReport extends Config {
 		$quiz_options = array(
 			array(
 				'value' => '',
-				'text'  => __( 'No results', 'uncanny-learndash-reporting' ),
+				'text'  => 'Aucun résultat',
 			),
 		);
 
@@ -716,7 +702,7 @@ class GroupQuizReport extends Config {
 		$html .= '<div class="reporting-status reporting-status--loading">';
 		$html .= '<div class="reporting-status__icon"></div>';
 		$html .= '<div class="reporting-status__text">';
-		$html .= __( 'Loading', 'uncanny-learndash-reporting' );
+		$html .= 'Chargement';
 		$html .= '</div>';
 		$html .= '</div>';
 		$html .= '</div>';
@@ -745,7 +731,7 @@ class GroupQuizReport extends Config {
 				'value' => '-1',
 				'text'  => sprintf(
 				// translators: %1$s: group Label
-					__( 'Any %1$s, including no %1$s', 'uncanny-learndash-reporting' ),
+					'Tout(e) %1, y compris sans %1',
 					strtolower( $group_label )
 				),
 			);
@@ -760,7 +746,7 @@ class GroupQuizReport extends Config {
 					'value' => 0,
 					'text'  => sprintf(
 					// translators: %s: Group Label
-						__( 'Select a %s', 'uncanny-learndash-reporting' ),
+						'Sélectionner un(e) %s',
 						strtolower( $group_label )
 					),
 				);
@@ -777,7 +763,7 @@ class GroupQuizReport extends Config {
 					'value' => -2,
 					'text'  => sprintf(
 					// translators: %s: Plural Groups Label
-						__( 'All %s', 'uncanny-learndash-reporting' ),
+						'Tous les %s',
 						strtolower( $groups_label )
 					),
 				);
@@ -802,7 +788,7 @@ class GroupQuizReport extends Config {
 					'value' => 0,
 					'text'  => sprintf(
 					// translators: %s: Plural Groups Label
-						__( 'No %s', 'uncanny-learndash-reporting' ),
+						'Aucun(e) %s',
 						strtolower( $groups_label )
 					),
 				);
@@ -910,7 +896,7 @@ class GroupQuizReport extends Config {
 				'value' => '',
 				'text'  => sprintf(
 				// translators: %s is plural quizzes label
-					__( 'No %s available', 'uncanny-learndash-reporting' ),
+					'Aucun(e) %s disponible',
 					\LearnDash_Custom_Label::get_label( 'quizzes' )
 				),
 			);
@@ -922,7 +908,7 @@ class GroupQuizReport extends Config {
 						'value' => '',
 						'text'  => sprintf(
 						// translators: %s is plural quizzes label
-							__( 'Select a %s', 'uncanny-learndash-reporting' ),
+							'Sélectionner un(e) %s',
 							\LearnDash_Custom_Label::get_label( 'quiz' )
 						),
 					),
@@ -1006,7 +992,7 @@ class GroupQuizReport extends Config {
 			$html .= '<div class="statistic_icon"></div>';
 			$html .= '</a>';
 		} else {
-			$html = __( 'No stats recorded', 'uncanny-learndash-reporting' );
+			$html = 'Aucune statistique enregistrée';
 		}
 		return $html;
 	}
@@ -1174,7 +1160,7 @@ class GroupQuizReport extends Config {
 		$user             = wp_get_current_user();
 		$user_access_role = $this->user_access_role( $user );
 		if ( empty ( $user_access_role ) ) {
-			return new \WP_Error( 'rest_forbidden', esc_html__( 'Sorry, you do not have permission to view this report.', 'uncanny-learndash-reporting' ) );
+			return new \WP_Error( 'rest_forbidden', esc_html'Désolé, vous n'avez pas la permission de consulter ce rapport.' );
 		}
 
 		return true;

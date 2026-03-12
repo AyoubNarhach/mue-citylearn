@@ -15,11 +15,11 @@ if ( ! defined( 'WPINC' ) ) {
 	<div id="reporting-course-navigation" class="reporting-breadcrumbs">
 		<ul class="reporting-breadcrumbs-items">
 			<li class="reporting-breadcrumbs-item reporting-breadcrumbs-item--guide">
-				<span><?php _e( 'Tin Canny Reports', 'uncanny-learndash-reporting' ); ?></span>
+				<span><?php echo 'Rapports Tin Canny'; ?></span>
 			</li>
 			<li id="course-navigate-link" class="reporting-breadcrumbs-item reporting-breadcrumbs-item--visible reporting-breadcrumbs-item--current">
 				<span>
-					<?php printf( _x( '%s Report', '%s is the "Course" label', 'uncanny-learndash-reporting' ), esc_html( $template_data['labels']['course'] ) ); ?>
+					<?php echo esc_html( sprintf( 'Rapport %s',  ) ); ?>
 				</span>
 			</li>
 			<li id="courseSingleTitle" class="reporting-breadcrumbs-item"></li>
@@ -45,7 +45,7 @@ if ( ! defined( 'WPINC' ) ) {
 									<div class="reporting-dashboard-status reporting-dashboard-status--loading">
 										<div class="reporting-dashboard-status__icon"></div>
 										<div class="reporting-dashboard-status__text">
-											<?php _e( 'Loading', 'uncanny-learndash-reporting' ); ?>
+											<?php echo 'Chargement'; ?>
 										</div>
 									</div>
 								</td>
@@ -67,7 +67,7 @@ if ( ! defined( 'WPINC' ) ) {
 						<?php
 						echo esc_html(
 							/* Translators: 1:Course label*/
-							sprintf( __( '%1$s Completions', 'uncanny-learndash-reporting' ), $template_data['labels']['course'] )
+							sprintf( 'Complétion de %1',  )
 						);
 						?>
 					</div>
@@ -76,7 +76,7 @@ if ( ! defined( 'WPINC' ) ) {
 							<div class="reporting-dashboard-status reporting-dashboard-status--loading">
 								<div class="reporting-dashboard-status__icon"></div>
 								<div class="reporting-dashboard-status__text">
-									<?php _e( 'Loading', 'uncanny-learndash-reporting' ); ?>
+									<?php echo 'Chargement'; ?>
 								</div>
 							</div>
 						</div>
@@ -89,7 +89,7 @@ if ( ! defined( 'WPINC' ) ) {
 					<div class="reporting-dashboard-col-heading">
 						<?php
 						echo esc_html(
-							sprintf( _x( '%s Overview', '%s is the "Course" label', 'uncanny-learndash-reporting' ), $template_data['labels']['course'] )
+							sprintf( 'Vue d'ensemble %s',  )
 						);
 						?>
 					</div>
@@ -102,7 +102,7 @@ if ( ! defined( 'WPINC' ) ) {
 											<div class="reporting-dashboard-status reporting-dashboard-status--loading">
 												<div class="reporting-dashboard-status__icon"></div>
 												<div class="reporting-dashboard-status__text">
-													<?php _e( 'Loading', 'uncanny-learndash-reporting' ); ?>
+													<?php echo 'Chargement'; ?>
 												</div>
 											</div>
 										</td>
@@ -117,7 +117,7 @@ if ( ! defined( 'WPINC' ) ) {
 					<div class="reporting-dashboard-col-heading">
 						<?php
 						echo esc_html(
-							sprintf( _x( '%s Status', '%s is the "Course" label', 'uncanny-learndash-reporting' ), $template_data['labels']['course'] )
+							sprintf( 'Statut %s',  )
 						);
 						?>
 					</div>
@@ -135,7 +135,7 @@ if ( ! defined( 'WPINC' ) ) {
 		<div class="reporting-section">
 			<div class="reporting-metabox">
 				<div class="reporting-dashboard-col-heading" id="courseSingleTableHeading">
-					<?php esc_html_e( 'Enrolled Users', 'uncanny-learndash-reporting' ); ?>
+					<?php echo esc_html( 'Apprenants inscrits' ); ?>
 				</div>
 				<div class="reporting-dashboard-col-content reporting-dashboard-col-content--no-padding reporting-dashboard-col-content--no-min-height">
 					<table id="courseSingleTable" class="stripe responsive reporting-table reporting-table-selectable" style="width: 100%;">
@@ -145,7 +145,7 @@ if ( ! defined( 'WPINC' ) ) {
 									<div class="reporting-dashboard-status reporting-dashboard-status--loading">
 										<div class="reporting-dashboard-status__icon"></div>
 										<div class="reporting-dashboard-status__text">
-											<?php _e( 'Loading', 'uncanny-learndash-reporting' ); ?>
+											<?php echo 'Chargement'; ?>
 										</div>
 									</div>
 								</td>

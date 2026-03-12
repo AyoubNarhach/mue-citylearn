@@ -19,12 +19,12 @@ if ( ! empty( TinCannyShortcode::$groups_query ) && 0 < count( TinCannyShortcode
 
 			<div class="reporting-group-selector__label-container">
 				<label for="reporting-group-selector">
-					<?php esc_html_e( 'Group', 'uncanny-learndash-reporting' ); ?>
+					<?php echo esc_html( 'Groupe' ); ?>
 				</label>
 			</div>
 			<div class="reporting-group-selector__select-container">
 				<select name="group_id" id="reporting-group-selector" class="reporting-group-selector__select">
-					<option value="all"><?php esc_html_e( 'All Users', 'uncanny-learndash-reporting' ); ?></option>
+					<option value="all"><?php echo esc_html( 'Tous les utilisateurs' ); ?></option>
 					<?php
 					foreach ( TinCannyShortcode::$groups_query as $group ) {
 						?>
@@ -39,7 +39,7 @@ if ( ! empty( TinCannyShortcode::$groups_query ) && 0 < count( TinCannyShortcode
 				</select>
 			</div>
 			<div class="reporting-group-selector__submit-container">
-				<input value="<?php esc_html_e( 'Filter', 'uncanny-learndash-reporting' ); ?>" type="submit"
+				<input value="<?php echo esc_html( 'Filtrer' ); ?>" type="submit"
 					   id="reporting-group-selector__submit">
 			</div>
 		</form>

@@ -28,7 +28,7 @@ $step_label             = \LearnDash_Custom_Label::get_label( $data['type'] );
 				} else {
                     printf(
                         /* translators: %s is the group label */
-                        esc_html__( '%s ( Optional )', 'uncanny-learndash-reporting' ),
+                        '%s (Optionnel)',
                         $group_label
                     );
 				}
@@ -40,7 +40,7 @@ $step_label             = \LearnDash_Custom_Label::get_label( $data['type'] );
                     <?php
                         printf(
                             /* translators: %s is the group label */
-                            esc_html__( 'Select a %s', 'uncanny-learndash-reporting' ),
+                            'Sélectionner un(e) %s',
                             strtolower( $group_label )
                         ); ?>
 				<?php } ?>
@@ -67,7 +67,7 @@ $step_label             = \LearnDash_Custom_Label::get_label( $data['type'] );
 				<option value="">
                     <?php printf(
                         /* translators: %s is the course label */
-                        esc_html__( 'Select a %s', 'uncanny-learndash-reporting' ),
+                        'Sélectionner un(e) %s',
                         $course_label
                     ); ?>
                 </option>
@@ -95,7 +95,7 @@ $step_label             = \LearnDash_Custom_Label::get_label( $data['type'] );
 				echo esc_html(
 					sprintf(
 						/* translators: %s is the type of report (lesson or topic) */
-						__( 'Select a %s', 'uncanny-learndash-reporting' ),
+						'Sélectionner un(e) %s',
 						strtolower($step_label)
 					)
 				);
