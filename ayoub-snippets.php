@@ -6755,7 +6755,7 @@ function ay_is_lms_admin( $user_id ) {
 }
 
 // 1. Nouveaux Group Leaders : accès aux cours + membre du groupe (sauf Administrateur LMS)
-add_action( 'learndash_group_leader_user_added', function ( $user_id, $group_id ) {
+add_action( 'ld_added_leader_group_access', function ( $user_id, $group_id ) {
     ay_enroll_leader_in_group_courses( $user_id, $group_id );
     if ( ! ay_is_lms_admin( $user_id ) && function_exists( 'ld_update_group_access' ) ) {
         ld_update_group_access( (int) $user_id, (int) $group_id, false ); // false = ajouter comme membre
