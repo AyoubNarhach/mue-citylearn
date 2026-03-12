@@ -6780,7 +6780,7 @@ add_action( 'admin_init', function () {
 
 // 4. Migration one-time : ajoute les Group Leaders simples (non-admin) comme membres de leurs groupes
 add_action( 'admin_init', function () {
-    if ( get_option( 'ay_gl_add_members_migration_done' ) ) return;
+    if ( get_option( 'ay_gl_add_members_v2_done' ) ) return;
     if ( ! function_exists( 'learndash_get_administrators_group_ids' ) ) return;
     if ( ! function_exists( 'ld_update_group_access' ) ) return;
 
@@ -6793,12 +6793,13 @@ add_action( 'admin_init', function () {
         }
     }
 
-    update_option( 'ay_gl_add_members_migration_done', 1 );
+    update_option( 'ay_gl_add_members_v2_done', 1 );
 } );
 
-// 3. Nettoyage v2 : retire leaders ET admins LMS de la liste membres (itère par groupe)
+// 3. Nettoyage v2 : retire UNIQUEMENT les Administrateurs LMS de la liste membres
+//    (les group leaders simples doivent rester membres)
 add_action( 'admin_init', function () {
-    if ( get_option( 'ay_gl_cleanup_v2_done' ) ) return;
+    if ( get_option( 'ay_gl_cleanup_v3_done' ) ) return;
     if ( ! function_exists( 'ld_update_group_access' ) ) return;
 
     global $wpdb;
@@ -6817,22 +6818,14 @@ add_action( 'admin_init', function () {
         ) );
 
         foreach ( (array) $member_ids as $user_id ) {
-            $user = get_userdata( (int) $user_id );
-            if ( ! $user ) continue;
-
-            $is_leader_or_admin = in_array( 'group_leader', (array) $user->roles )
-                               || user_can( (int) $user_id, 'manage_options' );
-
-            if ( $is_leader_or_admin ) {
-                // S'assurer que l'accès aux cours est conservé
-                ay_enroll_leader_in_group_courses( (int) $user_id, (int) $group_id );
-                // Retirer de la liste des membres du groupe
-                ld_update_group_access( (int) $user_id, (int) $group_id, true );
-            }
+            if ( ! ay_is_lms_admin( (int) $user_id ) ) continue; // ne touche que les admins LMS
+            // Conserver l'accès aux cours puis retirer de la liste membres
+            ay_enroll_leader_in_group_courses( (int) $user_id, (int) $group_id );
+            ld_update_group_access( (int) $user_id, (int) $group_id, true );
         }
     }
 
-    update_option( 'ay_gl_cleanup_v2_done', 1 );
+    update_option( 'ay_gl_cleanup_v3_done', 1 );
 } );
 
 
