@@ -6732,3 +6732,21 @@ add_action( 'admin_init', function () {
     wp_die( $s );
 } );
 
+// === Auto-inscription des Group Leaders comme membres du groupe ===
+/**
+ * Quand un utilisateur est ajouté comme Group Leader d'un groupe,
+ * l'inscrire aussi automatiquement comme membre (apprenant) du groupe
+ * afin qu'il ait accès aux parcours.
+ */
+add_action( 'learndash_group_leader_user_added', function ( $user_id, $group_id ) {
+    if ( ! function_exists( 'ld_update_group_access' ) ) return;
+    if ( ! function_exists( 'learndash_is_user_in_group' ) ) return;
+
+    // Déjà membre → rien à faire
+    if ( learndash_is_user_in_group( $user_id, $group_id ) ) return;
+
+    // Inscription comme membre du groupe (accès aux parcours)
+    ld_update_group_access( $user_id, $group_id, false );
+}, 10, 2 );
+
+
