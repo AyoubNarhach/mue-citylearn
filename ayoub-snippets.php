@@ -1176,8 +1176,8 @@ wp_send_json_success(['user_id' => (int)$user_id]);
     $st = ldua_get_account_state($id);
     $lc = ldua_state_label_color($st['state']);
 
-    $raw_log = (array) get_user_meta($id, '_ldua_email_log', true);
-    $email_log = array_values(array_reverse($raw_log));
+    $raw_log = get_user_meta($id, '_ldua_email_log', true);
+    $email_log = array_values(array_reverse(is_array($raw_log) ? $raw_log : []));
 
     wp_send_json_success([
       'user' => [
