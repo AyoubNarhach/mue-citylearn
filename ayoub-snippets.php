@@ -456,6 +456,17 @@ if (!defined('LDUA_BOOTSTRAP')) {
   /* =========================================================
    *  Emails FR + helper
    * ========================================================= */
+  if (!function_exists('ldua_log_email')) {
+    function ldua_log_email($user_id, $subject) {
+      $user_id = (int) $user_id;
+      if (!$user_id) return;
+      $log = (array) get_user_meta($user_id, '_ldua_email_log', true);
+      $log[] = ['subject' => $subject, 'date' => current_time('Y-m-d H:i:s')];
+      if (count($log) > 100) $log = array_slice($log, -100);
+      update_user_meta($user_id, '_ldua_email_log', $log);
+    }
+  }
+
   if (!function_exists('ldua_send_mail_fr')) {
     function ldua_send_mail_fr($to, $subject, $message, $headers = [])
     {
@@ -1006,6 +1017,7 @@ $msg = '
 ';
 
 ldua_send_mail_fr($email, $subject, $msg);
+ldua_log_email($user_id, $subject);
 
 wp_send_json_success(['user_id' => (int)$user_id]);
 
@@ -1164,6 +1176,9 @@ wp_send_json_success(['user_id' => (int)$user_id]);
     $st = ldua_get_account_state($id);
     $lc = ldua_state_label_color($st['state']);
 
+    $raw_log = (array) get_user_meta($id, '_ldua_email_log', true);
+    $email_log = array_values(array_reverse($raw_log));
+
     wp_send_json_success([
       'user' => [
         'id' => $id,
@@ -1181,6 +1196,7 @@ wp_send_json_success(['user_id' => (int)$user_id]);
         'label' => $lc['label'],
         'color' => $lc['color'],
       ],
+      'email_log' => $email_log,
     ]);
   });
 
@@ -1469,6 +1485,7 @@ wp_send_json_success(['user_id' => (int)$user_id]);
           </div>
         ';
         ldua_send_mail_fr($email, $subject, $msg);
+        ldua_log_email($user_id, $subject);
       } else {
         // update simple
         wp_update_user([
@@ -2241,6 +2258,11 @@ add_action('wp_ajax_ldua_bulk_status', function () {
             </div>
 
             <div class="ldua-prof-msg" style="display:none;color:#16a34a;font-weight:700;"></div>
+
+            <div class="ldua-prof-email-log" style="margin-top:.8rem;">
+              <div style="font-weight:700;margin-bottom:.4rem;font-size:.85rem;color:#555;">Emails envoyés</div>
+              <div class="ldua-prof-email-list" style="max-height:160px;overflow-y:auto;border:1px solid #e5e7eb;border-radius:6px;font-size:.82rem;"></div>
+            </div>
           </div>
         </div>
       </div>
@@ -2415,6 +2437,19 @@ add_action('wp_ajax_ldua_bulk_status', function () {
 
                 modal.querySelector('.ldua-prof-date-start').value = d.activation || '';
                 modal.querySelector('.ldua-prof-date-suspension').value = d.suspension || '';
+
+                const emailList = modal.querySelector('.ldua-prof-email-list');
+                const log = data.data.email_log || [];
+                if (log.length === 0) {
+                  emailList.innerHTML = '<div style="padding:.5rem .8rem;color:#999;">Aucun email envoyé.</div>';
+                } else {
+                  emailList.innerHTML = log.map((e, i) =>
+                    '<div style="padding:.4rem .8rem;' + (i % 2 === 0 ? 'background:#f9f9f9;' : '') + 'display:flex;justify-content:space-between;gap:.5rem;">' +
+                      '<span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + e.subject.replace(/</g,'&lt;') + '</span>' +
+                      '<span style="white-space:nowrap;color:#888;">' + e.date + '</span>' +
+                    '</div>'
+                  ).join('');
+                }
 
                 modal.style.display = 'flex';
                 modal.setAttribute('aria-hidden', 'false');
